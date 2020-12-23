@@ -63,9 +63,10 @@ class TelegramBot:
         # Send message to admin
         for admin in config.get("admin", "ids"):
             try:
-                self.updater.bot.send_message(admin, "Bot is up and running!")
+                self.updater.bot.send_message(admin, f"{emo.ROBOT} Bot is up and running!")
             except Exception as e:
-                logging.error(e)
+                msg = f"{emo.ERROR} Couldn't send 'Bot is up' message"
+                logging.error(f"{msg}: {e}")
 
     def bot_start_polling(self):
         """ Start the bot in polling mode """
@@ -162,7 +163,7 @@ class TelegramBot:
         if not isinstance(handle, str) or not plugin.get_handle():
             raise Exception("Wrong command handle")
 
-        # TODO: Add possibility to add any handler
+        # TODO: Add possibility to add any handler. Maybe with decorators
         self.dispatcher.add_handler(
             CommandHandler(handle, plugin.check_and_execute, pass_args=True))
 
