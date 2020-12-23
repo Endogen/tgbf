@@ -1,0 +1,6 @@
+INFO = "ℹ"
+ERROR = "‼"
+GOODBYE = "👋"
+DONE = "✅"
+HEART = "❤"
+ALERT = "🚨"

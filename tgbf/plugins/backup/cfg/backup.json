@@ -1,0 +1,6 @@
+{
+    "handle": "backup",
+    "description": "Backup whole bot or a plugin",
+    "only_owner": true,
+    "only_private": true
+}

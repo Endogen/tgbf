@@ -1,0 +1,6 @@
+{
+    "handle": "admin",
+    "description": "Control and maintain the bot",
+    "only_owner": true,
+    "only_private": true
+}
