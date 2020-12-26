@@ -1,42 +1,36 @@
 import logging
 
 from tgbf.plugin import TGBFPlugin
-from telegram.ext import MessageHandler, Filters
+from telegram.ext import MessageHandler, Filters, Handler
 
 
 class Usage(TGBFPlugin):
 
-    def __enter__(self):
+    def init(self):
         if not self.table_exists("usage"):
             sql = self.get_resource("create_usage.sql")
             self.execute_sql(sql)
 
-        def save(update, context):
-            try:
-                c = update.effective_chat
+        # TODO: This interferes with commands
+        #return MessageHandler(Filters.command, self.usage_callback)
 
-                if c.type.lower() == "private":
-                    return
+    def usage_callback(self, update, context):
+        try:
+            c = update.effective_chat
 
-                u = update.effective_user
+            if c.type.lower() == "private":
+                return
 
-                if not u:
-                    return
+            u = update.effective_user
 
-                if u.is_bot:
-                    return
+            if not u:
+                return
 
-                sql = self.get_resource("insert_active.sql")
-                self.execute_sql(sql, c.id, u.id, "@" + u.username if u.username else u.first_name)
-            except Exception as e:
-                logging.error(f"ERROR: {e} - UPDATE: {update}")
-                self.notify(e)
+            if u.is_bot:
+                return
 
-        # Receive messages if they trigger a command
-        self._tgb.dispatcher.add_handler(MessageHandler(Filters.command, save))
-
-        return self
-
-    # Not needed since we use the MessageHandler
-    def execute(self, update, context):
-        pass
+            sql = self.get_resource("insert_active.sql")
+            self.execute_sql(sql, c.id, u.id, "@" + u.username if u.username else u.first_name)
+        except Exception as e:
+            logging.error(f"ERROR: {e} - UPDATE: {update}")
+            self.notify(e)

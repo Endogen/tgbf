@@ -8,12 +8,13 @@ import tgbf.emoji as emo
 
 from pathlib import Path
 from telegram import ChatAction, Chat, ParseMode, Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, Handler, CommandHandler
 from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
 from datetime import datetime, timedelta
 
 
+# TODO: Doesn't work right now
 def threaded(fn):
     """ Decorator for methods that have to run in their own thread """
     def _threaded(*args, **kwargs):
@@ -44,6 +45,13 @@ class TGBFPlugin:
     def __exit__(self, exc_type, exc_value, traceback):
         """ This method gets executed after the plugin gets loaded """
         pass
+
+    def add_handler(self, handler: Handler):
+        if isinstance(handler, CommandHandler):
+            # TODO: Get callback function from CommandHandler and replace it with enriched callback
+            pass
+
+        self._tgb.dispatcher.add_handler(handler)
 
     @threaded
     def check_and_execute(self, update: Update, context: CallbackContext):
@@ -115,6 +123,13 @@ class TGBFPlugin:
 
         self.execute(update, context)
 
+    def init(self) -> Handler:
+        """ Override this to be executed after command gets triggered """
+        method = inspect.currentframe().f_code.co_name
+        msg = f"Method '{method}' of plugin '{self.get_name()}' not implemented"
+        logging.error(msg)
+
+    # TODO: Remove
     def execute(self, update: Update, context: CallbackContext):
         """ Override this to be executed after command gets triggered """
         method = inspect.currentframe().f_code.co_name

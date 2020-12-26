@@ -2,18 +2,19 @@ import tgbf.emoji as emo
 
 from tgbf.plugin import TGBFPlugin
 from telegram import Update, ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 
 
 class Feedback(TGBFPlugin):
 
-    def __enter__(self):
+    def init(self):
         if not self.table_exists("feedback"):
             sql = self.get_resource("create_feedback.sql")
             self.execute_sql(sql)
-        return self
 
-    def execute(self, update: Update, context: CallbackContext):
+        return CommandHandler(self.get_name(), self.feedback_callback, pass_args=True)
+
+    def feedback_callback(self, update: Update, context: CallbackContext):
         if not context.args:
             update.message.reply_text(
                 text=f"Usage:\n{self.get_usage()}",

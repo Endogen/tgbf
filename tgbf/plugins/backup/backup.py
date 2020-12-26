@@ -7,14 +7,17 @@ import tgbf.constants as con
 
 from tgbf.plugin import TGBFPlugin
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 
 
 class Backup(TGBFPlugin):
 
     BACKUP_DIR = "backups"
 
-    def execute(self, update: Update, context: CallbackContext):
+    def init(self):
+        return CommandHandler(self.get_name(), self.backup_callback)
+
+    def backup_callback(self, update: Update, context: CallbackContext):
         command = ""
 
         if len(context.args) == 1:

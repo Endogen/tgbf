@@ -2,14 +2,16 @@ import os
 import shutil
 import logging
 import importlib
+
 import tgbf.emoji as emo
 import tgbf.utils as utl
 import tgbf.constants as con
 
+from typing import List
 from zipfile import ZipFile
 from importlib import reload
 from telegram import ParseMode, Chat, Update
-from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
+from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext, Handler
 from telegram.error import InvalidToken, Unauthorized
 from tgbf.config import ConfigManager
 
@@ -100,14 +102,27 @@ class TelegramBot:
 
             reload(module)
 
+            msg = f"Method 'init' of plugin '{module_name}' has to return an instance of {Handler.__name__}"
+
             with getattr(module, module_name.capitalize())(self) as plugin:
-                self._add_handler(plugin)
-                self.plugins.append(plugin)
+                handlers = plugin.init()
+
+                if not handlers or not isinstance(handlers, (Handler, List[Handler])):
+                    logging.error(msg)
+                    return
+
+                if isinstance(handlers, Handler):
+                    handlers = [handlers]
+
+                for handler in handlers:
+                    self.dispatcher.add_handler(handler)
+                    self.plugins.append(plugin)
+
                 logging.info(f"Plugin '{plugin.get_name()}' added")
                 return {"success": True, "msg": "Plugin added"}
         except Exception as ex:
             msg = f"Plugin '{module_name.capitalize()}' can't be added: {ex}"
-            logging.warning(msg)
+            logging.error(msg)
             raise ex
 
     def remove_plugin(self, module_name):
@@ -149,13 +164,27 @@ class TelegramBot:
             module_path = f"{con.DIR_SRC}.{con.DIR_PLG}.{module_name}.{module_name}"
             module = importlib.import_module(module_path)
 
+            msg = f"Method 'init' of plugin '{module_name}' has to return an instance of {Handler.__name__}"
+
             with getattr(module, module_name.capitalize())(self) as plugin:
-                self._add_handler(plugin)
-                self.plugins.append(plugin)
+                handlers = plugin.init()
+
+                if not handlers or not isinstance(handlers, (Handler, List[Handler])):
+                    logging.error(msg)
+                    return
+
+                if isinstance(handlers, Handler):
+                    handlers = [handlers]
+
+                for handler in handlers:
+                    self.dispatcher.add_handler(handler)
+                    self.plugins.append(plugin)
+
                 logging.info(f"Plugin '{plugin.get_name()}' added")
         except Exception as e:
-            logging.warning(f"File '{file}': {e}")
+            logging.error(f"File '{file}': {e}")
 
+    # TODO: Remove
     def _add_handler(self, plugin):
         """ Add CommandHandler for given plugin """
         handle = plugin.get_handle()

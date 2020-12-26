@@ -11,6 +11,7 @@ from logging.handlers import TimedRotatingFileHandler
 from tgbf.web import FlaskAppWrapper
 
 
+# TODO: Exchange watchdog against watchgod?
 # TODO: Make sure that if a DB is removed while bot is running then it gets created automatically again
 class TGBF:
 

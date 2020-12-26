@@ -2,12 +2,15 @@ from collections import OrderedDict
 from tgbf.plugin import TGBFPlugin
 
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 
 
 class Help(TGBFPlugin):
 
-    def execute(self, update: Update, context: CallbackContext):
+    def init(self):
+        return CommandHandler(self.get_name(), self.help_callback)
+
+    def help_callback(self, update: Update, context: CallbackContext):
         categories = OrderedDict()
 
         for p in self.get_plugins():

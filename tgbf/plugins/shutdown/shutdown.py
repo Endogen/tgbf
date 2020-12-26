@@ -3,12 +3,15 @@ import tgbf.emoji as emo
 
 from tgbf.plugin import TGBFPlugin
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 
 
 class Shutdown(TGBFPlugin):
 
-    def execute(self, update: Update, context: CallbackContext):
+    def init(self):
+        return CommandHandler(self.get_name(), self.shutdown_callback)
+
+    def shutdown_callback(self, update: Update, context: CallbackContext):
         msg = f"{emo.GOODBYE} Shutting down..."
         update.message.reply_text(msg)
 

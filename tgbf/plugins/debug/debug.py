@@ -7,12 +7,15 @@ import tgbf.emoji as emo
 
 from tgbf.plugin import TGBFPlugin
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 
 
 class Debug(TGBFPlugin):
 
-    def execute(self, update: Update, context: CallbackContext):
+    def init(self):
+        return CommandHandler(self.get_name(), self.debug_callback)
+
+    def debug_callback(self, update: Update, context: CallbackContext):
         open_files = psutil.Process().open_files()
 
         vi = sys.version_info

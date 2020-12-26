@@ -4,7 +4,7 @@ import tgbf.utils as utl
 import tgbf.emoji as emo
 
 from telegram import ParseMode, Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 from tgbf.config import ConfigManager
 from tgbf.plugin import TGBFPlugin
 
@@ -13,7 +13,10 @@ from tgbf.plugin import TGBFPlugin
 # TODO: Error if only one argument provided
 class Admin(TGBFPlugin):
 
-    def execute(self, update: Update, context: CallbackContext):
+    def init(self):
+        return CommandHandler(self.get_name(), self.admin_callback)
+
+    def admin_callback(self, update: Update, context: CallbackContext):
         import time
         time.sleep(10)
 
