@@ -3,6 +3,8 @@ import sqlite3
 import logging
 import inspect
 import threading
+from typing import Tuple, List
+
 import tgbf.constants as c
 import tgbf.emoji as emo
 
@@ -123,7 +125,7 @@ class TGBFPlugin:
 
         self.execute(update, context)
 
-    def init(self) -> Handler:
+    def init(self) -> tuple[Handler]:
         """ Override this to be executed after command gets triggered """
         method = inspect.currentframe().f_code.co_name
         msg = f"Method '{method}' of plugin '{self.get_name()}' not implemented"

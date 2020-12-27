@@ -7,7 +7,6 @@ import tgbf.emoji as emo
 import tgbf.utils as utl
 import tgbf.constants as con
 
-from typing import List
 from zipfile import ZipFile
 from importlib import reload
 from telegram import ParseMode, Chat, Update
@@ -102,17 +101,17 @@ class TelegramBot:
 
             reload(module)
 
-            msg = f"Method 'init' of plugin '{module_name}' has to return an instance of {Handler.__name__}"
+            msg = f"Method 'init' of plugin '{module_name}' has to " \
+                  f"return one or more instances of {Handler.__name__}"
 
             with getattr(module, module_name.capitalize())(self) as plugin:
                 handlers = plugin.init()
 
-                if not handlers or not isinstance(handlers, (Handler, List[Handler])):
+                if not isinstance(handlers, tuple):
+                    handlers = (handlers,)
+                if not all(isinstance(h, Handler) for h in handlers):
                     logging.error(msg)
                     return
-
-                if isinstance(handlers, Handler):
-                    handlers = [handlers]
 
                 for handler in handlers:
                     self.dispatcher.add_handler(handler)
@@ -164,17 +163,17 @@ class TelegramBot:
             module_path = f"{con.DIR_SRC}.{con.DIR_PLG}.{module_name}.{module_name}"
             module = importlib.import_module(module_path)
 
-            msg = f"Method 'init' of plugin '{module_name}' has to return an instance of {Handler.__name__}"
+            msg = f"Method 'init' of plugin '{module_name}' has to " \
+                  f"return one or more instances of {Handler.__name__}"
 
             with getattr(module, module_name.capitalize())(self) as plugin:
                 handlers = plugin.init()
 
-                if not handlers or not isinstance(handlers, (Handler, List[Handler])):
+                if not isinstance(handlers, tuple):
+                    handlers = (handlers,)
+                if not all(isinstance(h, Handler) for h in handlers):
                     logging.error(msg)
                     return
-
-                if isinstance(handlers, Handler):
-                    handlers = [handlers]
 
                 for handler in handlers:
                     self.dispatcher.add_handler(handler)

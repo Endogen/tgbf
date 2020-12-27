@@ -14,7 +14,7 @@ from tgbf.plugin import TGBFPlugin
 class Admin(TGBFPlugin):
 
     def init(self):
-        return CommandHandler(self.get_name(), self.admin_callback)
+        return CommandHandler(self.get_name(), self.admin_callback, pass_args=True)
 
     def admin_callback(self, update: Update, context: CallbackContext):
         import time

@@ -15,7 +15,7 @@ class Backup(TGBFPlugin):
     BACKUP_DIR = "backups"
 
     def init(self):
-        return CommandHandler(self.get_name(), self.backup_callback)
+        return CommandHandler(self.get_name(), self.backup_callback, pass_args=True)
 
     def backup_callback(self, update: Update, context: CallbackContext):
         command = ""
