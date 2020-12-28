@@ -2,8 +2,6 @@ import os
 import sqlite3
 import logging
 import inspect
-import threading
-from typing import Tuple, List
 
 import tgbf.constants as c
 import tgbf.emoji as emo
@@ -14,16 +12,6 @@ from telegram.ext import CallbackContext, Handler, CommandHandler
 from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
 from datetime import datetime, timedelta
-
-
-# TODO: Doesn't work right now
-def threaded(fn):
-    """ Decorator for methods that have to run in their own thread """
-    def _threaded(*args, **kwargs):
-        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
-        thread.start()
-        return thread
-    return _threaded
 
 
 # TODO: Add properties where needed
@@ -39,25 +27,35 @@ class TGBFPlugin:
         cfg_path = os.path.join(self.get_cfg_path(), f"{self.get_name()}.json")
         self.config = ConfigManager(cfg_path)
 
+        # Create handler list for plugin
+        self.handlers = list()
+
     def __enter__(self):
         """ This method gets executed before the plugin gets loaded.
         Make sure to return 'self' if you override it """
+
+        method = inspect.currentframe().f_code.co_name
+        msg = f"Method '{method}' of plugin '{self.get_name()}' not implemented"
+        logging.warning(msg)
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         """ This method gets executed after the plugin gets loaded """
         pass
 
-    def add_handler(self, handler: Handler):
-        if isinstance(handler, CommandHandler):
-            # TODO: Get callback function from CommandHandler and replace it with enriched callback
-            pass
+    def add_handler(self, handler: Handler, group: int = 0):
+        # TODO: Check conditions ...
+        # TODO: Maybe save group also
 
-        self._tgb.dispatcher.add_handler(handler)
+        self._tgb.dispatcher.add_handler(handler, group)
+        self.handlers.append(handler)
 
-    @threaded
-    def check_and_execute(self, update: Update, context: CallbackContext):
-        """ Checks conditions and if all ok then  execute self.execute() """
+        logging.info(f"Plugin '{self.get_name()}': {type(handler).__name__} added")
+
+    """
+    def check(self,  function):
+        # Checks conditions ...
 
         user_id = update.effective_user.id
 
@@ -123,20 +121,8 @@ class TGBFPlugin:
                         pass
                     return
 
-        self.execute(update, context)
-
-    def init(self) -> tuple[Handler]:
-        """ Override this to be executed after command gets triggered """
-        method = inspect.currentframe().f_code.co_name
-        msg = f"Method '{method}' of plugin '{self.get_name()}' not implemented"
-        logging.error(msg)
-
-    # TODO: Remove
-    def execute(self, update: Update, context: CallbackContext):
-        """ Override this to be executed after command gets triggered """
-        method = inspect.currentframe().f_code.co_name
-        msg = f"Method '{method}' not implemented for plugin '{self.get_name()}'"
-        logging.warning(msg)
+        return function
+    """
 
     def get_usage(self, replace: dict = None):
         """ Return how to use the command """
@@ -203,9 +189,6 @@ class TGBFPlugin:
             when,
             context=context,
             name=name if name else self.get_name())
-
-    def add_handler(self, handler, group=0):
-        self._tgb.dispatcher.add_handler(handler, group=group)
 
     def add_plugin(self, module_name):
         """ Enable a plugin """

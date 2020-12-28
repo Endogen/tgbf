@@ -1,18 +1,23 @@
 import logging
 
 from tgbf.plugin import TGBFPlugin
-from telegram.ext import MessageHandler, Filters, Handler
+from telegram.ext import MessageHandler, Filters
 
 
 class Usage(TGBFPlugin):
 
-    def init(self):
+    def __enter__(self):
         if not self.table_exists("usage"):
             sql = self.get_resource("create_usage.sql")
             self.execute_sql(sql)
 
-        # TODO: This interferes with commands
-        #return MessageHandler(Filters.command, self.usage_callback)
+        self.add_handler(MessageHandler(
+            Filters.command,
+            self.usage_callback,
+            run_async=True),
+            group=1)
+
+        return self
 
     def usage_callback(self, update, context):
         try:

@@ -7,12 +7,18 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Feedback(TGBFPlugin):
 
-    def init(self):
+    def __enter__(self):
         if not self.table_exists("feedback"):
             sql = self.get_resource("create_feedback.sql")
             self.execute_sql(sql)
 
-        return CommandHandler(self.get_name(), self.feedback_callback, pass_args=True)
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.feedback_callback,
+            pass_args=True,
+            run_async=True))
+
+        return self
 
     def feedback_callback(self, update: Update, context: CallbackContext):
         if not context.args:

@@ -12,6 +12,14 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Debug(TGBFPlugin):
 
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.debug_callback,
+            run_async=True))
+
+        return self
+
     def init(self):
         return CommandHandler(self.get_name(), self.debug_callback)
 

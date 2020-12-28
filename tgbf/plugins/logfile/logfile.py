@@ -10,8 +10,13 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Logfile(TGBFPlugin):
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.logfile_callback)
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.logfile_callback,
+            run_async=True))
+
+        return self
 
     def logfile_callback(self, update: Update, context: CallbackContext):
         base_dir = os.path.abspath(os.getcwd())

@@ -7,8 +7,13 @@ class About(TGBFPlugin):
 
     INFO_FILE = "info.md"
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.about_callback)
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.about_callback,
+            run_async=True))
+
+        return self
 
     def about_callback(self, update: Update, context: CallbackContext):
         update.message.reply_text(

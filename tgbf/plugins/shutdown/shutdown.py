@@ -8,8 +8,13 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Shutdown(TGBFPlugin):
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.shutdown_callback)
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.shutdown_callback,
+            run_async=True))
+
+        return self
 
     def shutdown_callback(self, update: Update, context: CallbackContext):
         msg = f"{emo.GOODBYE} Shutting down..."

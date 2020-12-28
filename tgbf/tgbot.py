@@ -163,23 +163,11 @@ class TelegramBot:
             module_path = f"{con.DIR_SRC}.{con.DIR_PLG}.{module_name}.{module_name}"
             module = importlib.import_module(module_path)
 
-            msg = f"Method 'init' of plugin '{module_name}' has to " \
-                  f"return one or more instances of {Handler.__name__}"
-
             with getattr(module, module_name.capitalize())(self) as plugin:
-                handlers = plugin.init()
-
-                if not isinstance(handlers, tuple):
-                    handlers = (handlers,)
-                if not all(isinstance(h, Handler) for h in handlers):
-                    logging.error(msg)
-                    return
-
-                for handler in handlers:
-                    self.dispatcher.add_handler(handler)
-                    self.plugins.append(plugin)
-
-                logging.info(f"Plugin '{plugin.get_name()}' added")
+                # Nothing to do here
+                pass
+            self.plugins.append(plugin)
+            logging.info(f"Plugin '{plugin.get_name()}' added")
         except Exception as e:
             logging.error(f"File '{file}': {e}")
 

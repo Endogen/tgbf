@@ -7,8 +7,13 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Help(TGBFPlugin):
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.help_callback)
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.help_callback,
+            run_async=True))
+
+        return self
 
     def help_callback(self, update: Update, context: CallbackContext):
         categories = OrderedDict()

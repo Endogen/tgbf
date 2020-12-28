@@ -144,4 +144,4 @@ cython_debug/
 /cfg/token.json
 log/
 dat/
-backups/
+bck/

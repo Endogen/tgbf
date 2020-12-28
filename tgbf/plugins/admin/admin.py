@@ -13,13 +13,15 @@ from tgbf.plugin import TGBFPlugin
 # TODO: Error if only one argument provided
 class Admin(TGBFPlugin):
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.admin_callback, pass_args=True)
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.admin_callback,
+            run_async=True))
+
+        return self
 
     def admin_callback(self, update: Update, context: CallbackContext):
-        import time
-        time.sleep(10)
-
         if not context.args:
             update.message.reply_text(
                 text=f"Usage:\n{self.get_usage()}",

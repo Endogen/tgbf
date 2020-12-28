@@ -7,8 +7,13 @@ class Start(TGBFPlugin):
 
     ABOUT_FILE = "about.md"
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.start_callback)
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.start_callback,
+            run_async=True))
+
+        return self
 
     def start_callback(self, update: Update, context: CallbackContext):
         about = self.get_resource(self.ABOUT_FILE)

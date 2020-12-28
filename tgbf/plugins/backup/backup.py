@@ -12,10 +12,16 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Backup(TGBFPlugin):
 
-    BACKUP_DIR = "backups"
+    BACKUP_DIR = "bck"
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.backup_callback, pass_args=True)
+    def __enter__(self):
+        self.add_handler(CommandHandler(
+            self.get_name(),
+            self.backup_callback,
+            pass_args=True,
+            run_async=True))
+
+        return self
 
     def backup_callback(self, update: Update, context: CallbackContext):
         command = ""
