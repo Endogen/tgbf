@@ -11,6 +11,7 @@ class Usage(TGBFPlugin):
             sql = self.get_resource("create_usage.sql")
             self.execute_sql(sql)
 
+        # Capture all issued commands
         self.add_handler(MessageHandler(
             Filters.command,
             self.usage_callback,
@@ -21,21 +22,27 @@ class Usage(TGBFPlugin):
 
     def usage_callback(self, update, context):
         try:
-            c = update.effective_chat
+            chat = update.effective_chat
+            user = update.effective_user
 
-            if c.type.lower() == "private":
+            if not chat or not user:
+                msg = f"Could not save usage for update: {update}"
+                logging.warning(msg)
                 return
 
-            u = update.effective_user
-
-            if not u:
-                return
-
-            if u.is_bot:
-                return
-
-            sql = self.get_resource("insert_active.sql")
-            self.execute_sql(sql, c.id, u.id, "@" + u.username if u.username else u.first_name)
+            sql = self.get_resource("insert_usage.sql")
+            self.execute_sql(
+                sql,
+                user.id,
+                user.first_name,
+                user.last_name,
+                user.username,
+                user.language_code,
+                chat.id,
+                chat.type,
+                chat.title,
+                update.message.text)
         except Exception as e:
-            logging.error(f"ERROR: {e} - UPDATE: {update}")
-            self.notify(e)
+            msg = f"Could not save usage: {e}"
+            logging.error(f"{msg} - {update}")
+            self.notify(msg)
