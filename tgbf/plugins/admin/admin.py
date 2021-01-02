@@ -21,6 +21,9 @@ class Admin(TGBFPlugin):
 
         return self
 
+    @TGBFPlugin.owner
+    @TGBFPlugin.dependency
+    @TGBFPlugin.send_typing
     def admin_callback(self, update: Update, context: CallbackContext):
         if not context.args:
             update.message.reply_text(
@@ -57,6 +60,7 @@ class Admin(TGBFPlugin):
             conf = context.args[0].lower()
             context.args.pop(0)
 
+            # FIXME: ERROR
             get_set = context.args[0].lower()
             context.args.pop(0)
 

@@ -2,6 +2,7 @@ import os
 import sqlite3
 import logging
 import inspect
+import threading
 
 import tgbf.constants as c
 import tgbf.emoji as emo
@@ -46,7 +47,6 @@ class TGBFPlugin:
 
     def add_handler(self, handler: Handler, group: int = 0):
         # TODO: Check conditions ...
-        # TODO: Maybe save group also
 
         self._tgb.dispatcher.add_handler(handler, group)
         self.handlers.append(handler)
@@ -488,3 +488,112 @@ class TGBFPlugin:
                     error = f"Not possible to notify admin id '{admin}'"
                     logging.error(f"{error}: {e}")
         return some_input
+
+    @classmethod
+    def private(cls, func):
+        """ Decorator for methods that need to be run in a private chat with the bot """
+        def _private(self, update: Update, context: CallbackContext, **kwargs):
+            if self.config.get("private") == False:
+                return func(self, update, context, **kwargs)
+            elif context.bot.get_chat(update.message.chat_id).type == Chat.PRIVATE:
+                return func(self, update, context, **kwargs)
+            else:
+                try:
+                    msg = f"{emo.INFO} Execute in a *private* chat"
+                    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+                except:
+                    pass
+
+        return _private
+
+    @classmethod
+    def public(cls, func):
+        """ Decorator for methods that need to be run in a public group """
+        def _public(self, update: Update, context: CallbackContext, **kwargs):
+            if self.config.get("public") == False:
+                return func(self, update, context, **kwargs)
+            elif context.bot.get_chat(update.message.chat_id).type != Chat.PRIVATE:
+                return func(self, update, context, **kwargs)
+            else:
+                try:
+                    msg = f"{emo.INFO} Execute in a *public* chat"
+                    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+                except:
+                    pass
+
+        return _public
+
+    @classmethod
+    def owner(cls, func):
+        """
+        Decorator that executes the method only if the user is an bot admin.
+
+        The user ID that triggered the command has to be in the ["admin"]["ids"]
+        list of the global config file 'config.json' or in the ["admins"] list
+        of the currently used plugin config file.
+        """
+
+        def _owner(self, update: Update, context: CallbackContext, **kwargs):
+            user_id = update.effective_user.id
+
+            admins_global = self.global_config.get("admin", "ids")
+            if admins_global and isinstance(admins_global, list):
+                if user_id in admins_global:
+                    return func(self, update, context, **kwargs)
+
+            admins_plugin = self.config.get("admins")
+            if admins_plugin and isinstance(admins_plugin, list):
+                if user_id in admins_plugin:
+                    return func(self, update, context, **kwargs)
+
+        return _owner
+
+    @classmethod
+    def dependency(cls, func):
+        """ Decorator that executes a method only if the mentioned
+        plugins in the config file of the current plugin are enabled """
+
+        def _dependency(self, update: Update, context: CallbackContext, **kwargs):
+            dependencies = self.config.get("dependencies")
+
+            if dependencies and isinstance(dependencies, list):
+                # TODO: Rework
+                plugins = [p.get_name() for p in self.get_plugins()]
+
+                for dependency in dependencies:
+                    if dependency.lower() not in plugins:
+                        # TODO: Add message about what is missing for which plugin
+                        return
+
+            return func(self, update, context, **kwargs)
+        return _dependency
+
+    @classmethod
+    def send_typing(cls, func):
+        """ Decorator for sending typing notification in the Telegram chat """
+        def _send_typing(self, update: Update, context: CallbackContext, **kwargs):
+            if update.message:
+                user_id = update.message.chat_id
+            elif update.callback_query:
+                user_id = update.callback_query.message.chat_id
+            else:
+                logging.warning(f"Can not extract user ID - {update}")
+                return func(self, update, context, **kwargs)
+
+            try:
+                context.bot.send_chat_action(
+                    chat_id=user_id,
+                    action=ChatAction.TYPING)
+            except:
+                pass
+
+            return func(self, update, context, **kwargs)
+        return _send_typing
+
+    # TODO: Do i really need it?
+    @staticmethod
+    def threaded(fn):
+        """ Decorator for methods that have to run in their own thread """
+        def _threaded(*args, **kwargs):
+            return threading.Thread(target=fn, args=args, kwargs=kwargs).start()
+        return _threaded
