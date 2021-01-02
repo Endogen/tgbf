@@ -171,18 +171,6 @@ class TelegramBot:
         except Exception as e:
             logging.error(f"File '{file}': {e}")
 
-    # TODO: Remove
-    def _add_handler(self, plugin):
-        """ Add CommandHandler for given plugin """
-        handle = plugin.get_handle()
-
-        if not isinstance(handle, str) or not plugin.get_handle():
-            raise Exception("Wrong command handle")
-
-        # TODO: Add possibility to add any handler. Maybe with decorators
-        self.dispatcher.add_handler(
-            CommandHandler(handle, plugin.check_and_execute, pass_args=True))
-
     def _update_plugin(self, bot, update):
         """
         Update a plugin by uploading a file to the bot.
