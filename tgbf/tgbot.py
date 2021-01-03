@@ -171,7 +171,7 @@ class TelegramBot:
         except Exception as e:
             logging.error(f"File '{file}': {e}")
 
-    def _update_plugin(self, bot, update):
+    def _update_plugin(self, update: Update, context: CallbackContext):
         """
         Update a plugin by uploading a file to the bot.
 
