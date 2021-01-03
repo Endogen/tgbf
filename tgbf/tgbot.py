@@ -187,7 +187,7 @@ class TelegramBot:
         """
 
         # Check if in a private chat
-        if bot.get_chat(update.message.chat_id).type != Chat.PRIVATE:
+        if context.bot.get_chat(update.message.chat_id).type != Chat.PRIVATE:
             return
 
         # Check if user that triggered the command is allowed to execute it
@@ -215,7 +215,7 @@ class TelegramBot:
                 update.message.reply_text(msg)
                 return
 
-            file = bot.getFile(update.message.document.file_id)
+            file = context.bot.getFile(update.message.document.file_id)
 
             if zipped:
                 os.makedirs(con.DIR_TMP, exist_ok=True)
