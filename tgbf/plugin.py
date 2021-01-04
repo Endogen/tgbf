@@ -9,12 +9,13 @@ import tgbf.emoji as emo
 
 from pathlib import Path
 from telegram import ChatAction, Chat, ParseMode, Update
-from telegram.ext import CallbackContext, Handler, CommandHandler
+from telegram.ext import CallbackContext, Handler
 from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
 from datetime import datetime, timedelta
 
 
+# TODO: Add possibility to change / disable decorators via config
 # TODO: Add properties where needed
 class TGBFPlugin:
 
@@ -52,77 +53,6 @@ class TGBFPlugin:
         self.handlers.append(handler)
 
         logging.info(f"Plugin '{self.get_name()}': {type(handler).__name__} added")
-
-    """
-    def check(self,  function):
-        # Checks conditions ...
-
-        user_id = update.effective_user.id
-
-        if update.message:
-            chat_id = update.message.chat_id
-        elif update.callback_query:
-            chat_id = update.callback_query.message.chat_id
-        else:
-            msg = f"{emo.ERROR} Can't determine chat ID"
-            logging.error(f"{msg} - {update}")
-            self.notify(msg)
-            return
-
-        # Check if plugin needs to be executed by admins
-        if self.config.get("only_owner"):
-            user_is_admin = False
-
-            admins_global = self.global_config.get("admin", "ids")
-            if admins_global and isinstance(admins_global, list):
-                if user_id in admins_global:
-                    user_is_admin = True
-            admins_plugin = self.config.get("admins")
-            if admins_plugin and isinstance(admins_plugin, list):
-                if user_id in admins_plugin:
-                    user_is_admin = True
-
-            if not user_is_admin:
-                return
-
-        # Send typing notification
-        try:
-            context.bot.send_chat_action(
-                chat_id=chat_id,
-                action=ChatAction.TYPING)
-        except:
-            msg = f"{emo.ERROR} Couldn't send typing notification"
-            logging.warning(msg)
-
-        # Check if plugin needs to be executed in private chat
-        if self.config.get("only_private"):
-            if not context.bot.get_chat(chat_id).type == Chat.PRIVATE:
-                try:
-                    msg = f"{emo.INFO} Can only be executed in *private* chat with bot"
-                    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-                except:
-                    pass
-                return
-
-        # Check if all plugin dependencies are fulfilled
-        dependencies = self.config.get("dependency")
-
-        if dependencies and isinstance(dependencies, list):
-            plugins = [p.get_name() for p in self.get_plugins()]
-
-            for dep in dependencies:
-                if dep.lower() not in plugins:
-                    msg = f"{emo.ERROR} Missing dependency '{dep}' for plugin '{self.get_name()}'"
-                    logging.error(msg)
-                    self.notify(msg)
-                    try:
-                        update.message.reply_text(msg)
-                    except:
-                        pass
-                    return
-
-        return function
-    """
 
     def get_usage(self, replace: dict = None):
         """ Return how to use the command """
@@ -590,7 +520,6 @@ class TGBFPlugin:
             return func(self, update, context, **kwargs)
         return _send_typing
 
-    # TODO: Do i really need it?
     @staticmethod
     def threaded(fn):
         """ Decorator for methods that have to run in their own thread """

@@ -11,7 +11,7 @@ class Usage(TGBFPlugin):
             sql = self.get_resource("create_usage.sql")
             self.execute_sql(sql)
 
-        # Capture all issued commands
+        # Capture all executed commands
         self.add_handler(MessageHandler(
             Filters.command,
             self.usage_callback,

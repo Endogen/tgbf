@@ -61,12 +61,12 @@ class TelegramBot:
         # Handle all Telegram related errors
         self.dispatcher.add_error_handler(self._handle_tg_errors)
 
-        # Send message to admin
+        # Send message to admin(s)
         for admin in config.get("admin", "ids"):
             try:
                 self.updater.bot.send_message(admin, f"{emo.ROBOT} Bot is up and running!")
             except Exception as e:
-                msg = f"{emo.ERROR} Couldn't send 'Bot is up' message"
+                msg = f"ERROR: Couldn't send 'Bot is up' message"
                 logging.error(f"{msg}: {e}")
 
     def bot_start_polling(self):
@@ -89,6 +89,8 @@ class TelegramBot:
         """ Go in idle mode """
         self.updater.idle()
 
+    # TODO: Test this
+    # TODO: Combine this method with '_load_plugin()'
     def add_plugin(self, module_name):
         """ Load a plugin so that it can be used """
         for plugin in self.plugins:
@@ -101,29 +103,18 @@ class TelegramBot:
 
             reload(module)
 
-            msg = f"Method 'init' of plugin '{module_name}' has to " \
-                  f"return one or more instances of {Handler.__name__}"
-
             with getattr(module, module_name.capitalize())(self) as plugin:
-                handlers = plugin.init()
-
-                if not isinstance(handlers, tuple):
-                    handlers = (handlers,)
-                if not all(isinstance(h, Handler) for h in handlers):
-                    logging.error(msg)
-                    return
-
-                for handler in handlers:
-                    self.dispatcher.add_handler(handler)
-                    self.plugins.append(plugin)
-
-                logging.info(f"Plugin '{plugin.get_name()}' added")
-                return {"success": True, "msg": "Plugin added"}
-        except Exception as ex:
-            msg = f"Plugin '{module_name.capitalize()}' can't be added: {ex}"
+                # Nothing to do here
+                pass
+            self.plugins.append(plugin)
+            logging.info(f"Plugin '{plugin.get_name()}' added")
+            return {"success": True, "msg": "Plugin added"}
+        except Exception as e:
+            msg = f"Plugin '{module_name.capitalize()}' can't be added: {e}"
             logging.error(msg)
-            raise ex
+            raise e
 
+    # TODO: Rename to 'enable' and 'disable'?
     def remove_plugin(self, module_name):
         """ Unload a plugin so that it can't be used """
         for plugin in self.plugins:
