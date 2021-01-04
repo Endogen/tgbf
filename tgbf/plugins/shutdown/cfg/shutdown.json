@@ -1,6 +1,4 @@
 {
     "handle": "shutdown",
-    "description": "Shutdown the bot",
-    "only_owner": true,
-    "only_private": true
+    "description": "Shutdown the bot"
 }

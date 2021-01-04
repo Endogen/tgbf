@@ -1,5 +1,3 @@
 {
-    "handle": "debug",
-    "only_owner": true,
-    "only_private": true
+    "handle": "debug"
 }

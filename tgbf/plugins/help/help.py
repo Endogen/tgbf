@@ -15,6 +15,7 @@ class Help(TGBFPlugin):
 
         return self
 
+    @TGBFPlugin.send_typing
     def help_callback(self, update: Update, context: CallbackContext):
         categories = OrderedDict()
 
@@ -27,7 +28,7 @@ class Help(TGBFPlugin):
                 else:
                     categories[p.get_category()].append(des)
 
-        msg = "AVAILABLE COMMANDS\n\n"
+        msg = "Available Commands\n\n"
 
         for category in sorted(categories):
             msg += f"{category}\n"

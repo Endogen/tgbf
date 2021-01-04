@@ -18,6 +18,9 @@ class Logfile(TGBFPlugin):
 
         return self
 
+    @TGBFPlugin.owner
+    @TGBFPlugin.private
+    @TGBFPlugin.send_typing
     def logfile_callback(self, update: Update, context: CallbackContext):
         base_dir = os.path.abspath(os.getcwd())
         log_file = os.path.join(base_dir, con.DIR_LOG, con.FILE_LOG)

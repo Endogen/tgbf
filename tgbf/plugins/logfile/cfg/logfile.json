@@ -1,6 +1,4 @@
 {
     "handle": "log",
-    "description": "Download current logfile",
-    "only_owner": true,
-    "only_private": true
+    "description": "Download current logfile"
 }

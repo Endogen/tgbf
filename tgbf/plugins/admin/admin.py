@@ -22,7 +22,7 @@ class Admin(TGBFPlugin):
         return self
 
     @TGBFPlugin.owner
-    @TGBFPlugin.dependency
+    @TGBFPlugin.private
     @TGBFPlugin.send_typing
     def admin_callback(self, update: Update, context: CallbackContext):
         if not context.args:

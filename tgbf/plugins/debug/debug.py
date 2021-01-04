@@ -20,9 +20,9 @@ class Debug(TGBFPlugin):
 
         return self
 
-    def init(self):
-        return CommandHandler(self.get_name(), self.debug_callback)
-
+    @TGBFPlugin.owner
+    @TGBFPlugin.private
+    @TGBFPlugin.send_typing
     def debug_callback(self, update: Update, context: CallbackContext):
         open_files = psutil.Process().open_files()
 

@@ -23,6 +23,9 @@ class Backup(TGBFPlugin):
 
         return self
 
+    @TGBFPlugin.owner
+    @TGBFPlugin.private
+    @TGBFPlugin.send_typing
     def backup_callback(self, update: Update, context: CallbackContext):
         command = ""
 

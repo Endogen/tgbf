@@ -16,6 +16,9 @@ class Shutdown(TGBFPlugin):
 
         return self
 
+    @TGBFPlugin.owner
+    @TGBFPlugin.private
+    @TGBFPlugin.send_typing
     def shutdown_callback(self, update: Update, context: CallbackContext):
         msg = f"{emo.GOODBYE} Shutting down..."
         update.message.reply_text(msg)

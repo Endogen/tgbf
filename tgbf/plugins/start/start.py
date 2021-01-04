@@ -15,6 +15,7 @@ class Start(TGBFPlugin):
 
         return self
 
+    @TGBFPlugin.send_typing
     def start_callback(self, update: Update, context: CallbackContext):
         about = self.get_resource(self.ABOUT_FILE)
 

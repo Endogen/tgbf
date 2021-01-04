@@ -20,6 +20,7 @@ class Feedback(TGBFPlugin):
 
         return self
 
+    @TGBFPlugin.send_typing
     def feedback_callback(self, update: Update, context: CallbackContext):
         if not context.args:
             update.message.reply_text(
