@@ -9,6 +9,7 @@ from tgbf.config import ConfigManager
 from tgbf.plugin import TGBFPlugin
 
 
+# TODO: Add possibility to list all plugins, not only command-based plugins and disable / remove them via button
 # TODO: Add possibility to reload config file of plugin
 # TODO: Error if only one argument provided
 class Admin(TGBFPlugin):

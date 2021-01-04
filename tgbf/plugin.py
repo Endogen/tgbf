@@ -25,6 +25,7 @@ class TGBFPlugin:
         # Create access to global config
         self.global_config = self._tgb.config
 
+        # TODO: If no config available, create folder and cfg file
         # Create access to plugin config
         cfg_path = os.path.join(self.get_cfg_path(), f"{self.get_name()}.json")
         self.config = ConfigManager(cfg_path)
