@@ -10,7 +10,7 @@ import tgbf.constants as con
 from zipfile import ZipFile
 from importlib import reload
 from telegram import ParseMode, Chat, Update
-from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext, Handler
+from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
 from telegram.error import InvalidToken, Unauthorized
 from tgbf.config import ConfigManager
 
@@ -160,7 +160,7 @@ class TelegramBot:
             self.plugins.append(plugin)
             logging.info(f"Plugin '{plugin.get_name()}' added")
         except Exception as e:
-            logging.error(f"File '{file}': {e}")
+            logging.error(f"ERROR loading plugin in file '{file}': {e}")
 
     def _update_plugin(self, update: Update, context: CallbackContext):
         """
