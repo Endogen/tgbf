@@ -25,10 +25,8 @@ class TGBFPlugin:
         # Create access to global config
         self.global_config = self._tgb.config
 
-        # TODO: If no config available, create folder and cfg file
         # Create access to plugin config
-        cfg_path = os.path.join(self.get_cfg_path(), f"{self.get_name()}.json")
-        self.config = ConfigManager(cfg_path)
+        self.config = self.get_plugin_config()
 
         # Create handler list for plugin
         self.handlers = list()
@@ -47,9 +45,27 @@ class TGBFPlugin:
         """ This method gets executed after the plugin gets loaded """
         pass
 
-    def add_handler(self, handler: Handler, group: int = 0):
-        # TODO: Check conditions ...
+    def get_plugin_config(self):
+        """ Returns the plugin configuration. If the config
+        file doesn't exist then it will be created """
 
+        cfg_file = f"{self.get_name()}.json"
+        cfg_fold = os.path.join(self.get_cfg_path())
+        cfg_path = os.path.join(cfg_fold, cfg_file)
+
+        # Create config directory if it doesn't exist
+        os.makedirs(cfg_fold, exist_ok=True)
+
+        # Create config file if it doesn't exist
+        if not os.path.isfile(cfg_path):
+            with open(cfg_path, 'w') as file:
+                # Make it a valid JSON file
+                file.write("{}")
+
+        # Return plugin config
+        return ConfigManager(cfg_path)
+
+    def add_handler(self, handler: Handler, group: int = 0):
         self._tgb.dispatcher.add_handler(handler, group)
         self.handlers.append(handler)
 
