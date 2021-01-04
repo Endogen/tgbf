@@ -1,4 +1,3 @@
 {
-    "handle": "backup",
-    "description": "Backup whole bot or a plugin"
+    "description": "Backup whole bot or single plugin"
 }
