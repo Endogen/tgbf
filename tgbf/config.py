@@ -2,50 +2,59 @@ import os
 import json
 import logging
 import types
+import threading
+
 import tgbf.constants as con
 
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchgod import watch, Change
+from collections.abc import Callable
 
 
-class ConfigManager(FileSystemEventHandler):
+class ConfigManager(threading.Thread):
 
     _cfg_file = con.FILE_CFG
     _cfg = dict()
 
     _callback = None
     _ignore = False
-    _old = 0
 
-    def __init__(self, config_file, callback=None):
-        self._cfg_file = config_file
-        self._callback = callback
+    # TODO: Explain parameters in comment
+    def __init__(self, config_file=None, callback: Callable = None):
+        threading.Thread.__init__(self)
 
-        # Watch for config file changes
-        observer = Observer()
-        observer.schedule(self, os.path.dirname(self._cfg_file))
-        observer.start()
+        if config_file:
+            self._cfg_file = config_file
+        if callback:
+            self._callback = callback
 
-    def on_modified(self, event):
+        self.start()
+
+    def run(self) -> None:
+        """ Watch for config file changes """
+
+        for change in watch(self._cfg_file):
+            for status, location in change:
+                if status == Change.modified and location == self._cfg_file:
+                    self.on_modified()
+
+    def on_modified(self):
         """ Will be triggered if the config file has been changed manually.
          Will also execute the callback method if there is one """
 
-        if event.src_path == self._cfg_file:
-            stat = os.stat(event.src_path)
-            new = stat.st_mtime
+        print("NOW")
 
-            # Workaround for watchdog bug
-            # https://github.com/gorakhargosh/watchdog/issues/93
-            if (new - self._old) > 0.5:
-                if self._ignore:
-                    self._ignore = False
-                else:
-                    self._read_cfg()
+        if self._ignore:
+            self._ignore = False
+        else:
+            self._read_cfg()
 
-            self._old = new
-
-            if isinstance(self._callback, types.FunctionType):
-                self._callback(self._cfg, None, None)
+        # TODO: Uncomment
+        # TODO: Run in it's own thread?
+        """
+        # TODO: Execute only if _read_cfg() gets executed?
+        if isinstance(self._callback, types.FunctionType):
+            self._callback(self._cfg, None, None)
+        """
 
     def _read_cfg(self):
         """ Read the JSON content of a given configuration file """

@@ -5,9 +5,9 @@ name = "pypi"
 
 [packages]
 python-telegram-bot = "*"
-watchdog = "*"
 flask = "*"
 psutil = "*"
+watchgod = "*"
 
 [dev-packages]
 
