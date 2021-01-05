@@ -88,7 +88,8 @@ class TGBFPlugin:
 
     def get_handle(self):
         """ Return the command string that triggers the plugin """
-        return self.config.get("handle")
+        handle = self.config.get("handle")
+        return handle if handle else self.get_name()
 
     def get_category(self):
         """ Return the category of the plugin for the 'help' command """
