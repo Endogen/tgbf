@@ -11,9 +11,10 @@ from logging.handlers import TimedRotatingFileHandler
 from tgbf.web import FlaskAppWrapper
 
 
-# TODO: Exchange watchdog against watchgod?
 # TODO: Make sure that if a DB is removed while bot is running then it gets created automatically again
 class TGBF:
+
+    DESCRIPTION = f"Python Telegram Bot"
 
     def __init__(self):
         # Parse command line arguments
@@ -28,8 +29,8 @@ class TGBF:
 
     def _parse_args(self):
         """ Parse command line arguments """
-        desc = "Telegram Bot For T2X"
-        parser = ArgumentParser(description=desc)
+
+        parser = ArgumentParser(description=self.DESCRIPTION)
 
         # Save logfile
         parser.add_argument(
@@ -75,28 +76,12 @@ class TGBF:
             required=False,
             default=False)
 
-        # Bot TRX private key
-        parser.add_argument(
-            "-privkey",
-            dest="privkey",
-            help="set TRX wallet private key",
-            required=False,
-            default=None)
-
-        # Bot TRX private key via input
-        parser.add_argument(
-            "-input-privkey",
-            dest="input_privkey",
-            action="store_true",
-            help="set TRX wallet private key",
-            required=False,
-            default=False)
-
         return parser.parse_args()
 
     # Configure logging
     def _init_logger(self):
         """ Initialize the console logger and file logger """
+
         logger = logging.getLogger()
         logger.setLevel(self.args.loglevel)
 
@@ -137,6 +122,7 @@ class TGBF:
     # Read bot token from file
     def _get_bot_token(self):
         """ Read Telegram bot token from config file or command line or input """
+
         if self.args.input_token:
             return input("Enter Telegram Bot Token: ")
         if self.args.token:
