@@ -14,8 +14,6 @@ from tgbf.web import FlaskAppWrapper
 # TODO: Make sure that if a DB is removed while bot is running then it gets created automatically again
 class TGBF:
 
-    DESCRIPTION = f"Python Telegram Bot"
-
     def __init__(self):
         # Parse command line arguments
         self.args = self._parse_args()
@@ -30,7 +28,7 @@ class TGBF:
     def _parse_args(self):
         """ Parse command line arguments """
 
-        parser = ArgumentParser(description=self.DESCRIPTION)
+        parser = ArgumentParser(description=con.DESCRIPTION)
 
         # Save logfile
         parser.add_argument(
@@ -174,11 +172,15 @@ class TGBF:
         return data
 
     def start(self):
+
+        # Start bot
         if self.cfg.get("webhook", "use_webhook"):
             self.tgb.bot_start_webhook()
         else:
             self.tgb.bot_start_polling()
 
+        # TODO: Maybe make a plugin out of it?
+        # Start web interface
         if self.cfg.get("web", "use_web"):
             password = self.cfg.get("web", "password")
 

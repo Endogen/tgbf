@@ -1,5 +1,7 @@
 import os
 
+DESCRIPTION = "Python Telegram Bot"
+
 # Project folders
 DIR_SRC = os.path.basename(os.path.dirname(__file__))
 DIR_TEM = "templates"
