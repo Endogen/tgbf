@@ -41,4 +41,4 @@ class Logfile(TGBFPlugin):
                 document=file)
         else:
             update.message.reply_text(
-                text=f"{emo.ERROR} Not possible to download logfile")
+                text=f"{emo.WARNING} Not logfile found")

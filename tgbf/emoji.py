@@ -1,4 +1,5 @@
 INFO = "ℹ"
+WARNING = "⚠️"
 ERROR = "‼"
 GOODBYE = "👋"
 DONE = "✅"
