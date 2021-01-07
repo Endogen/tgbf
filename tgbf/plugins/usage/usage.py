@@ -18,8 +18,16 @@ class Usage(TGBFPlugin):
             run_async=True),
             group=1)
 
+        # Add web interface to read usage database
+        self.get_web().add_endpoint(
+            endpoint=f"/{self.get_name()}",
+            endpoint_name=f"/{self.get_name()}",
+            handler=self.usage_web,
+            secret=self.get_plugin_config().get("web_password"))
+
         return self
 
+    # TODO: Only save usage if command exists
     def usage_callback(self, update, context):
         try:
             chat = update.effective_chat
@@ -46,3 +54,14 @@ class Usage(TGBFPlugin):
             msg = f"Could not save usage: {e}"
             logging.error(f"{msg} - {update}")
             self.notify(msg)
+
+    def usage_web(self, password):
+        sql = self.get_resource("select_usage.sql")
+        res = self.execute_sql(sql)
+
+        if not res["success"]:
+            return f"ERROR: {res['data']}"
+        if not res["data"]:
+            return "NO DATA"
+
+        return res["data"]

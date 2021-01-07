@@ -2,13 +2,11 @@ import os
 import json
 import logging
 import tgbf.constants as con
-import sqlite3
 
 from argparse import ArgumentParser
 from tgbf.tgbot import TelegramBot
 from tgbf.config import ConfigManager as Cfg
 from logging.handlers import TimedRotatingFileHandler
-from tgbf.web import FlaskAppWrapper
 
 
 # TODO: Make sure that if a DB is removed while bot is running then it gets created automatically again
@@ -139,72 +137,15 @@ class TGBF:
             logging.error(f"{repr(e)} - {cls_name}")
             exit("ERROR: Can't read bot token")
 
-    # TODO: Rework
-    def _get_bet(self, key):
-        return self._get_data("bets", key)
-
-    # TODO: Rework
-    def _get_address(self, key):
-        return self._get_data("addresses", key)
-
-    # TODO: Rework
-    def _get_data(self, table, key):
-        path = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(path, "plugins", "bet", "data", "bet.db")
-
-        if not os.path.isfile(path):
-            return {"error": f"File doesn't exist: {path}"}
-
-        connection = sqlite3.connect(path)
-        cursor = connection.cursor()
-
-        if key:
-            column = "bet_address" if table == "bets" else "address"
-            sql = f"SELECT * FROM {table} WHERE {column} = ?"
-            cursor.execute(sql, [key])
-        else:
-            sql = f"SELECT * FROM {table}"
-            cursor.execute(sql)
-
-        connection.commit()
-        data = cursor.fetchall()
-        connection.close()
-        return data
-
     def start(self):
 
-        # Start bot
+        # Choose polling or webhook
         if self.cfg.get("webhook", "use_webhook"):
             self.tgb.bot_start_webhook()
         else:
             self.tgb.bot_start_polling()
 
-        # TODO: Maybe make a plugin out of it?
         # Start web interface
-        if self.cfg.get("web", "use_web"):
-            password = self.cfg.get("web", "password")
-
-            port = self.cfg.get("web", "port")
-            app = FlaskAppWrapper(__name__, port)
-
-            app.add_endpoint(
-                endpoint='/',
-                endpoint_name='/')
-
-            # TODO: Rework
-            app.add_endpoint(
-                endpoint='/bet',
-                endpoint_name='/bet',
-                handler=self._get_bet,
-                secret=password)
-
-            # TODO: Rework
-            app.add_endpoint(
-                endpoint='/address',
-                endpoint_name='/address',
-                handler=self._get_address,
-                secret=password)
-
-            app.run()
-
+        self.tgb.start_web()
+        # Start bot
         self.tgb.bot_idle()

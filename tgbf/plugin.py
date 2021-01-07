@@ -45,6 +45,10 @@ class TGBFPlugin:
         """ This method gets executed after the plugin gets loaded """
         pass
 
+    def get_web(self):
+        """ Returns the web interface (Flask) so that endpoints can be added """
+        return self._tgb.web
+
     def get_plugin_config(self):
         """ Returns the plugin configuration. If the config
         file doesn't exist then it will be created """

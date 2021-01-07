@@ -13,6 +13,7 @@ from telegram import ParseMode, Chat, Update
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
 from telegram.error import InvalidToken, Unauthorized
 from tgbf.config import ConfigManager
+from tgbf.web import FlaskAppWrapper
 
 
 class TelegramBot:
@@ -51,6 +52,15 @@ class TelegramBot:
         self.job_queue = self.updater.job_queue
         self.dispatcher = self.updater.dispatcher
 
+        # Init web interface
+        port = self.config.get("web", "port")
+        self.web = FlaskAppWrapper(__name__, port)
+
+        # Add default web endpoint
+        self.web.add_endpoint(
+            endpoint='/',
+            endpoint_name='/')
+
         # Load classes in folder 'plugins'
         self._load_plugins()
 
@@ -84,6 +94,11 @@ class TelegramBot:
             webhook_url=f"{self.config.get('webhook', 'url')}:"
                         f"{self.config.get('webhook', 'port')}/"
                         f"{self.updater.bot.token}")
+
+    def start_web(self):
+        """ Start web interface """
+        if self.config.get("web", "use_web"):
+            self.web.run()
 
     def bot_idle(self):
         """ Go in idle mode """

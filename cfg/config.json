@@ -23,8 +23,7 @@
         "timeout": 10
     },
     "web": {
-        "use_web": false,
-        "password": "12345",
+        "use_web": true,
         "port": 4987
     }
 }
