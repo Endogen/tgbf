@@ -7,6 +7,7 @@ import threading
 import tgbf.constants as c
 import tgbf.emoji as emo
 
+from typing import List
 from pathlib import Path
 from telegram import ChatAction, Chat, ParseMode, Update
 from telegram.ext import CallbackContext, Handler
@@ -22,14 +23,14 @@ class TGBFPlugin:
     def __init__(self, tg_bot: TelegramBot):
         self._tgb = tg_bot
 
-        # Create access to global config
+        # Access to global config
         self.global_config = self._tgb.config
 
-        # Create access to plugin config
+        # Access to plugin config
         self.config = self.get_plugin_config()
 
-        # Create handler list for plugin
-        self.handlers = list()
+        # All handlers for this plugin
+        self.handlers: List[Handler] = list()
 
     def __enter__(self):
         """ This method gets executed before the plugin gets loaded.
@@ -142,13 +143,13 @@ class TGBFPlugin:
             context=context,
             name=name if name else self.get_name())
 
-    def add_plugin(self, module_name):
+    def enable_plugin(self, module_name):
         """ Enable a plugin """
-        return self._tgb.add_plugin(module_name)
+        return self._tgb.enable_plugin(module_name)
 
-    def remove_plugin(self, module_name):
+    def disable_plugin(self, module_name):
         """ Disable a plugin """
-        return self._tgb.remove_plugin(module_name)
+        return self._tgb.disable_plugin(module_name)
 
     def get_global_resource(self, filename):
         """ Return the content of the given file

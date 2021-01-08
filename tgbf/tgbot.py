@@ -10,15 +10,13 @@ import tgbf.constants as con
 from zipfile import ZipFile
 from importlib import reload
 from telegram import ParseMode, Chat, Update
-from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 from telegram.error import InvalidToken, Unauthorized
 from tgbf.config import ConfigManager
 from tgbf.web import FlaskAppWrapper
 
 
 class TelegramBot:
-
-    plugins = list()
 
     def __init__(self, config: ConfigManager, token):
         self.config = config
@@ -62,6 +60,7 @@ class TelegramBot:
             endpoint_name='/')
 
         # Load classes in folder 'plugins'
+        self.plugins = list()
         self._load_plugins()
 
         # Handler for file downloads (plugin updates)
@@ -104,54 +103,42 @@ class TelegramBot:
         """ Go in idle mode """
         self.updater.idle()
 
-    # TODO: Test this
-    # TODO: Combine this method with '_load_plugin()'
-    def add_plugin(self, module_name):
+    # TODO: Do i need this in here or is it enough to have it in the plugin class?
+    def enable_plugin(self, name):
         """ Load a plugin so that it can be used """
+
         for plugin in self.plugins:
-            if plugin.get_name() == module_name.lower():
-                return {"success": False, "msg": "Plugin already active"}
+            if plugin.get_name() == name.lower():
+                return {"success": True, "msg": "Plugin already active"}
 
-        try:
-            module_path = f"{con.DIR_SRC}.{con.DIR_PLG}.{module_name}.{module_name}"
-            module = importlib.import_module(module_path)
+        result = self._load_plugin(name)
 
-            reload(module)
+        if result[0]:
+            return {"success": True, "msg": f"{emo.DONE} Plugin enabled"}
+        else:
+            return {"success": False, "msg": f"{emo.ERROR} Plugin not enabled: {result[1]}"}
 
-            with getattr(module, module_name.capitalize())(self) as plugin:
-                # Nothing to do here
-                pass
-            self.plugins.append(plugin)
-            logging.info(f"Plugin '{plugin.get_name()}' added")
-            return {"success": True, "msg": "Plugin added"}
-        except Exception as e:
-            msg = f"Plugin '{module_name.capitalize()}' can't be added: {e}"
-            logging.error(msg)
-            raise e
+    # TODO: Do i need this in here or is it enough to have it in the plugin class?
+    def disable_plugin(self, name):
+        """ Remove a plugin from the plugin list and also
+         remove all its handlers from the dispatcher """
 
-    # TODO: Rename to 'enable' and 'disable'?
-    def remove_plugin(self, module_name):
-        """ Unload a plugin so that it can't be used """
         for plugin in self.plugins:
-            if plugin.get_name() == module_name.lower():
-                try:
-                    for handler in self.dispatcher.handlers[0]:
-                        if isinstance(handler, CommandHandler):
-                            if handler.command[0] == plugin.get_handle():
-                                self.dispatcher.handlers[0].remove(handler)
-                                break
+            if plugin.get_name() == name.lower():
+                for handler in plugin.handlers:
+                    for group, handler_list in self.dispatcher.handlers.items():
+                        if handler in handler_list:
+                            self.dispatcher.remove_handler(handler, group)
+                            break
+                self.plugins.remove(plugin)
+                logging.info(f"Plugin '{plugin.get_name()}' disabled")
+                break
 
-                    self.plugins.remove(plugin)
-                    logging.info(f"Plugin '{plugin.get_name()}' removed")
-                    break
-                except Exception as ex:
-                    msg = f"Plugin '{module_name.capitalize()}' can't be removed: {ex}"
-                    logging.warning(msg)
-                    raise ex
-        return {"success": True, "msg": "Plugin removed"}
+        return {"success": True, "msg": f"{emo.DONE} Plugin disabled"}
 
     def _load_plugins(self):
         """ Load all plugins from the 'plugins' folder """
+
         try:
             for _, folders, _ in os.walk(os.path.join(con.DIR_SRC, con.DIR_PLG)):
                 for folder in folders:
@@ -162,20 +149,27 @@ class TelegramBot:
         except Exception as e:
             logging.error(e)
 
-    def _load_plugin(self, file):
+    # TODO: Only load plugin if base class is 'TGBFPlugin'
+    def _load_plugin(self, name):
         """ Load a single plugin """
+
         try:
-            module_name, extension = os.path.splitext(file)
+            module_name, _ = os.path.splitext(name)
             module_path = f"{con.DIR_SRC}.{con.DIR_PLG}.{module_name}.{module_name}"
             module = importlib.import_module(module_path)
 
+            reload(module)
+
             with getattr(module, module_name.capitalize())(self) as plugin:
-                # Nothing to do here
                 pass
+
             self.plugins.append(plugin)
-            logging.info(f"Plugin '{plugin.get_name()}' added")
+            msg = f"Plugin '{plugin.get_name()}' added"
+            logging.info(msg)
+            return True, msg
         except Exception as e:
-            logging.error(f"ERROR loading plugin in file '{file}': {e}")
+            logging.error(f"ERROR: Plugin '{name}' can not be added: {e}")
+            return False, str(e)
 
     def _update_plugin(self, update: Update, context: CallbackContext):
         """
@@ -234,8 +228,8 @@ class TelegramBot:
             else:
                 file.download(os.path.join(con.DIR_SRC, con.DIR_PLG, plugin_name, name))
 
-            self.remove_plugin(plugin_name)
-            self.add_plugin(plugin_name)
+            self.disable_plugin(plugin_name)
+            self.enable_plugin(plugin_name)
 
             shutil.rmtree(con.DIR_TMP, ignore_errors=True)
 

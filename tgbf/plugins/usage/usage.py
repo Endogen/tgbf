@@ -27,7 +27,6 @@ class Usage(TGBFPlugin):
 
         return self
 
-    # TODO: Only save usage if command exists
     def usage_callback(self, update, context):
         try:
             chat = update.effective_chat

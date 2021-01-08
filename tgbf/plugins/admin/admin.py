@@ -56,7 +56,7 @@ class Admin(TGBFPlugin):
 
             update.message.reply_text(msg)
 
-        # ---- Change configuration ----
+        # ---- Change global configuration ----
         elif command == "cfg":
             conf = context.args[0].lower()
             context.args.pop(0)
@@ -126,26 +126,22 @@ class Admin(TGBFPlugin):
         # ---- Manage plugins ----
         elif command == "plg":
             try:
-                # Start plugin
-                if context.args[0].lower() == "add":
-                    res = self.add_plugin(plugin)
+                # Enable plugin
+                if context.args[0].lower() == "enable":
+                    res = self.enable_plugin(plugin)
 
-                # Stop plugin
-                elif context.args[0].lower() == "remove":
-                    res = self.remove_plugin(plugin)
+                # Disable plugin
+                elif context.args[0].lower() == "disable":
+                    res = self.disable_plugin(plugin)
 
                 # Wrong sub-command
                 else:
                     update.message.reply_text(
-                        text="Only `add` and `remove` are supported",
+                        text=f"{emo.ERROR} Use `enable` or `disable`",
                         parse_mode=ParseMode.MARKDOWN)
                     return
 
-                # Reply with message
-                if res["success"]:
-                    update.message.reply_text(f"{emo.DONE} {res['msg']}")
-                else:
-                    update.message.reply_text(f"{emo.ERROR} {res['msg']}")
+                update.message.reply_text(f"{res['msg']}")
             except Exception as e:
                 update.message.reply_text(text=f"{emo.ERROR} {e}")
 
