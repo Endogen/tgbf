@@ -2,6 +2,7 @@ import logging
 
 from tgbf.plugin import TGBFPlugin
 from telegram.ext import MessageHandler, Filters
+from tgbf.web import EndpointAction
 
 
 class Usage(TGBFPlugin):
@@ -19,11 +20,8 @@ class Usage(TGBFPlugin):
             group=1)
 
         # Add web interface to read usage database
-        self.get_web().add_endpoint(
-            endpoint=f"/{self.get_name()}",
-            endpoint_name=f"/{self.get_name()}",
-            handler=self.usage_web,
-            secret=self.get_plugin_config().get("web_password"))
+        web_pass = self.get_plugin_config().get("web_password")
+        self.add_endpoint(self.get_name(), EndpointAction(self.usage_web, web_pass))
 
         return self
 

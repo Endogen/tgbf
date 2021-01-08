@@ -8,7 +8,7 @@ from flask import Flask, request, render_template
 
 class EndpointAction(object):
 
-    def __init__(self, action, secret):
+    def __init__(self, action, secret=None):
         self.action = action
         self.secret = secret
 
@@ -45,6 +45,7 @@ class EndpointAction(object):
         return self.response
 
 
+# TODO: Test if it also works if no secret provided
 class FlaskAppWrapper(object):
 
     def __init__(self, name, port=None):
@@ -52,8 +53,5 @@ class FlaskAppWrapper(object):
         template_dir = os.path.join(os.pardir, con.DIR_RES, con.DIR_TEM)
         self.app = Flask(name, template_folder=template_dir)
 
-    def run(self):
-        self.app.run(host='0.0.0.0', port=self.port, debug=False)
-
-    def add_endpoint(self, endpoint=None, endpoint_name=None, handler=None, secret=None):
-        self.app.add_url_rule(endpoint, endpoint_name, EndpointAction(handler, secret))
+    def run(self, debug=False):
+        self.app.run(host='0.0.0.0', port=self.port, debug=debug)

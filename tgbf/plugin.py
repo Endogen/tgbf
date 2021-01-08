@@ -7,17 +7,19 @@ import threading
 import tgbf.constants as c
 import tgbf.emoji as emo
 
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 from telegram import ChatAction, Chat, ParseMode, Update
 from telegram.ext import CallbackContext, Handler
 from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
 from datetime import datetime, timedelta
-
+from tgbf.web import EndpointAction
 
 # TODO: Add possibility to change / disable decorators via config
 # TODO: Add properties where needed
+
+
 class TGBFPlugin:
 
     def __init__(self, tg_bot: TelegramBot):
@@ -29,8 +31,11 @@ class TGBFPlugin:
         # Access to plugin config
         self.config = self.get_plugin_config()
 
-        # All handlers for this plugin
+        # All bot handlers for this plugin
         self.handlers: List[Handler] = list()
+
+        # All web endpoints for this plugin
+        self.endpoints: Dict[str, EndpointAction] = dict()
 
     def __enter__(self):
         """ This method gets executed before the plugin gets loaded.
@@ -45,10 +50,6 @@ class TGBFPlugin:
     def __exit__(self, exc_type, exc_value, traceback):
         """ This method gets executed after the plugin gets loaded """
         pass
-
-    def get_web(self):
-        """ Returns the web interface (Flask) so that endpoints can be added """
-        return self._tgb.web
 
     def get_plugin_config(self):
         """ Returns the plugin configuration. If the config
@@ -70,11 +71,20 @@ class TGBFPlugin:
         # Return plugin config
         return ConfigManager(cfg_path)
 
+    # TODO: Add comment
     def add_handler(self, handler: Handler, group: int = 0):
         self._tgb.dispatcher.add_handler(handler, group)
         self.handlers.append(handler)
 
         logging.info(f"Plugin '{self.get_name()}': {type(handler).__name__} added")
+
+    # TODO: Add comment
+    def add_endpoint(self, name, endpoint: EndpointAction):
+        name = name if name.startswith("/") else "/" + name
+        self._tgb.web.app.add_url_rule(name, name, endpoint)
+        self.endpoints[name] = endpoint
+
+        logging.info(f"Plugin '{self.get_name()}': Endpoint '{name}' added")
 
     def get_usage(self, replace: dict = None):
         """ Return how to use the command """

@@ -16,6 +16,10 @@ from tgbf.config import ConfigManager
 from tgbf.web import FlaskAppWrapper
 
 
+# TODO: Reload flask at runtime
+# https://stackoverflow.com/questions/27723287/reload-python-flask-server-by-function
+# https://gist.github.com/nguyenkims/ff0c0c52b6a15ddd16832c562f2cae1d
+# https://dev.to/lukeinthecloud/python-auto-reload-using-flask-ci6
 class TelegramBot:
 
     def __init__(self, config: ConfigManager, token):
@@ -54,12 +58,12 @@ class TelegramBot:
         port = self.config.get("web", "port")
         self.web = FlaskAppWrapper(__name__, port)
 
+        # TODO: How to add this route after restart of flask?
+        # FIXME: Why doesn't that work?
         # Add default web endpoint
-        self.web.add_endpoint(
-            endpoint='/',
-            endpoint_name='/')
+        self.web.app.add_url_rule("/", "/")
 
-        # Load classes in folder 'plugins'
+        # Load classes from folder 'plugins'
         self.plugins = list()
         self._load_plugins()
 
