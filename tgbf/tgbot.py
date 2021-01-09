@@ -13,7 +13,7 @@ from telegram import ParseMode, Chat, Update
 from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 from telegram.error import InvalidToken, Unauthorized
 from tgbf.config import ConfigManager
-from tgbf.web import FlaskAppWrapper
+from tgbf.web import FlaskAppWrapper, EndpointAction
 
 
 # TODO: Reload flask at runtime
@@ -59,9 +59,9 @@ class TelegramBot:
         self.web = FlaskAppWrapper(__name__, port)
 
         # TODO: How to add this route after restart of flask?
-        # FIXME: Why doesn't that work?
         # Add default web endpoint
-        self.web.app.add_url_rule("/", "/")
+        action = EndpointAction(None, None)
+        self.web.app.add_url_rule("/", "/", action)
 
         # Load classes from folder 'plugins'
         self.plugins = list()
