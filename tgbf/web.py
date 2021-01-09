@@ -35,7 +35,7 @@ class EndpointAction(object):
 
         # Create the answer (bundle it in a correctly formatted HTTP answer)
         if isinstance(result, str):
-            # If it's a string, we bundle it has a HTML-like answer
+            # If it's a string, we bundle it in a HTML-like answer
             self.response = flask.Response(result, status=200, headers={})
         else:
             # If it's something else (dict, ..) we jsonify and send it
@@ -45,7 +45,6 @@ class EndpointAction(object):
         return self.response
 
 
-# TODO: Test if it also works if no secret provided
 class FlaskAppWrapper(object):
 
     def __init__(self, name, port=None):
