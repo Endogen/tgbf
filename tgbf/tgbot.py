@@ -16,10 +16,6 @@ from tgbf.config import ConfigManager
 from tgbf.web import FlaskAppWrapper, EndpointAction
 
 
-# TODO: Reload flask at runtime
-# https://stackoverflow.com/questions/27723287/reload-python-flask-server-by-function
-# https://gist.github.com/nguyenkims/ff0c0c52b6a15ddd16832c562f2cae1d
-# https://dev.to/lukeinthecloud/python-auto-reload-using-flask-ci6
 class TelegramBot:
 
     def __init__(self, config: ConfigManager, token):
@@ -54,11 +50,12 @@ class TelegramBot:
         self.job_queue = self.updater.job_queue
         self.dispatcher = self.updater.dispatcher
 
+        # TODO: Reload / restart flask at runtime
         # Init web interface
         port = self.config.get("web", "port")
         self.web = FlaskAppWrapper(__name__, port)
 
-        # TODO: How to add this route after restart of flask?
+        # TODO: Add this route after restart of flask
         # Add default web endpoint
         action = EndpointAction(None, None)
         self.web.app.add_url_rule("/", "/", action)
@@ -122,6 +119,7 @@ class TelegramBot:
         else:
             return {"success": False, "msg": f"{emo.ERROR} Plugin not enabled: {result[1]}"}
 
+    # FIXME: Still can't re-enable a plugin because of endpoints
     # TODO: Do i need this in here or is it enough to have it in the plugin class?
     def disable_plugin(self, name):
         """ Remove a plugin from the plugin list and also
@@ -134,6 +132,7 @@ class TelegramBot:
                         if handler in handler_list:
                             self.dispatcher.remove_handler(handler, group)
                             break
+                self.web.remove_endpoint("/usage")
                 self.plugins.remove(plugin)
                 logging.info(f"Plugin '{plugin.get_name()}' disabled")
                 break
