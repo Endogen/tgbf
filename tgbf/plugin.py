@@ -9,7 +9,7 @@ import tgbf.emoji as emo
 
 from typing import List, Dict
 from pathlib import Path
-from telegram import ChatAction, Chat, ParseMode, Update
+from telegram import ChatAction, Chat, ParseMode, Update, Message
 from telegram.ext import CallbackContext, Handler
 from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
@@ -398,45 +398,29 @@ class TGBFPlugin:
                 return True
         return False
 
-    # TODO: Check implementation
-    def remove_msg(self, message, also_private=True):
-        """
-        Remove a Telegram message after a given time.
+    def remove_msg(self, message: Message, after_secs, private=True, public=True):
+        """ Remove a Telegram message after a given time """
 
-        The time needs to be set in the config file of a plugin
-        as 'remove_after'. Example: "remove_after": 10
+        is_private = self._tgb.updater.bot.get_chat(message.chat_id).type == Chat.PRIVATE
 
-        That would remove the message after 10 seconds.
-        If set to 0, the message will not be removed.
-        """
-
-        private = self._tgb.updater.bot.get_chat(message.chat_id).type == Chat.PRIVATE
-        remove_time = self.config.get("remove_after")
-
-        def remove_msg_job(bot, job):
-            param_lst = job.context.split("_")
+        def remove_msg_job(context: CallbackContext):
+            param_lst = str(context.job.context).split("_")
             chat_id = param_lst[0]
             msg_id = param_lst[1]
 
             try:
-                bot.delete_message(chat_id=chat_id, message_id=msg_id)
+                context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
             except Exception as e:
                 logging.error(f"Not possible to remove message: {e}")
 
         def remove():
-            if remove_time:
-                self.run_job(
-                    remove_msg_job,
-                    datetime.now() + timedelta(seconds=remove_time),
-                    context=f"{message.chat_id}_{message.message_id}")
-            else:
-                logging.warning("Can't remove message. Remove time not set")
+            self.run_job(
+                remove_msg_job,
+                datetime.utcnow() + timedelta(seconds=after_secs),
+                context=f"{message.chat_id}_{message.message_id}")
 
-        if also_private:
+        if (is_private and private) or (not is_private and public):
             remove()
-        else:
-            if not private:
-                remove()
 
     def notify(self, some_input):
         """ All admins in global config will get a message with the given text.
@@ -500,6 +484,9 @@ class TGBFPlugin:
         """
 
         def _owner(self, update: Update, context: CallbackContext, **kwargs):
+            if self.config.get("owner") == False:
+                return func(self, update, context, **kwargs)
+
             user_id = update.effective_user.id
 
             admins_global = self.global_config.get("admin", "ids")
