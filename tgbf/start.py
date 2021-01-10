@@ -139,7 +139,7 @@ class TGBF:
 
     def start(self):
 
-        # Choose polling or webhook
+        # Start bot in polling or webhook mode
         if self.cfg.get("webhook", "use_webhook"):
             self.tgb.bot_start_webhook()
         else:
@@ -147,5 +147,5 @@ class TGBF:
 
         # Start web interface
         self.tgb.start_web()
-        # Start bot
+        # Go in idle mode
         self.tgb.bot_idle()
