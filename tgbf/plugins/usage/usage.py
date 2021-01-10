@@ -30,7 +30,7 @@ class Usage(TGBFPlugin):
             chat = update.effective_chat
             user = update.effective_user
 
-            if not chat or not user:
+            if not chat or not user or not update.message:
                 msg = f"Could not save usage for update: {update}"
                 logging.warning(msg)
                 return
