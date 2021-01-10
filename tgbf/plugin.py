@@ -482,7 +482,6 @@ class TGBFPlugin:
                 return func(self, update, context, **kwargs)
             else:
                 try:
-                    name = context.bot.username if context.bot.username else context.bot.name
                     msg = f"{emo.INFO} Only allowed to execute in a public chat"
                     update.message.reply_text(msg)
                 except:
