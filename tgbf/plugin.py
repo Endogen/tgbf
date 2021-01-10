@@ -9,17 +9,15 @@ import tgbf.emoji as emo
 
 from typing import List, Dict
 from pathlib import Path
-from telegram import ChatAction, Chat, ParseMode, Update, Message
+from telegram import ChatAction, Chat, Update, Message
 from telegram.ext import CallbackContext, Handler
 from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
 from datetime import datetime, timedelta
 from tgbf.web import EndpointAction
 
-# TODO: Add possibility to change / disable decorators via config
+
 # TODO: Add properties where needed
-
-
 class TGBFPlugin:
 
     def __init__(self, tg_bot: TelegramBot):
