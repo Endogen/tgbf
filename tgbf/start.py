@@ -9,7 +9,6 @@ from tgbf.config import ConfigManager as Cfg
 from logging.handlers import TimedRotatingFileHandler
 
 
-# TODO: Make sure that if a DB is removed while bot is running then it gets created automatically again
 class TGBF:
 
     def __init__(self):
