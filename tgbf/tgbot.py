@@ -51,6 +51,8 @@ class TelegramBot:
         self.dispatcher = self.updater.dispatcher
 
         # TODO: Reload / restart flask at runtime
+        #  https://gist.github.com/nguyenkims/ff0c0c52b6a15ddd16832c562f2cae1d
+
         # Init web interface
         port = self.config.get("web", "port")
         self.web = FlaskAppWrapper(__name__, port)
@@ -154,7 +156,6 @@ class TelegramBot:
         except Exception as e:
             logging.error(e)
 
-    # TODO: Only load plugin if base class is 'TGBFPlugin'
     def _load_plugin(self, name):
         """ Load a single plugin """
 
