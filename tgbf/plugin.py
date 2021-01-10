@@ -455,6 +455,7 @@ class TGBFPlugin:
     @classmethod
     def private(cls, func):
         """ Decorator for methods that need to be run in a private chat with the bot """
+
         def _private(self, update: Update, context: CallbackContext, **kwargs):
             if self.config.get("private") == False:
                 return func(self, update, context, **kwargs)
@@ -462,8 +463,9 @@ class TGBFPlugin:
                 return func(self, update, context, **kwargs)
             else:
                 try:
-                    msg = f"{emo.INFO} Execute in a *private* chat"
-                    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+                    name = context.bot.username if context.bot.username else context.bot.name
+                    msg = f"{emo.INFO} Only allowed to execute in a private chat with @{name}"
+                    update.message.reply_text(msg)
                 except:
                     pass
 
@@ -472,6 +474,7 @@ class TGBFPlugin:
     @classmethod
     def public(cls, func):
         """ Decorator for methods that need to be run in a public group """
+
         def _public(self, update: Update, context: CallbackContext, **kwargs):
             if self.config.get("public") == False:
                 return func(self, update, context, **kwargs)
@@ -479,8 +482,9 @@ class TGBFPlugin:
                 return func(self, update, context, **kwargs)
             else:
                 try:
-                    msg = f"{emo.INFO} Execute in a *public* chat"
-                    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+                    name = context.bot.username if context.bot.username else context.bot.name
+                    msg = f"{emo.INFO} Only allowed to execute in a public chat"
+                    update.message.reply_text(msg)
                 except:
                     pass
 
