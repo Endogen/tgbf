@@ -6,6 +6,7 @@ import threading
 
 import tgbf.constants as c
 import tgbf.emoji as emo
+import tgbf.utils as utl
 
 from typing import List, Dict
 from pathlib import Path
@@ -69,15 +70,19 @@ class TGBFPlugin:
         # Return plugin config
         return ConfigManager(cfg_path)
 
-    # TODO: Add comment
     def add_handler(self, handler: Handler, group: int = 0):
+        """ Will add bot handlers to this plugins list of handlers
+         and also add them to the bot dispatcher """
+
         self._tgb.dispatcher.add_handler(handler, group)
         self.handlers.append(handler)
 
         logging.info(f"Plugin '{self.get_name()}': {type(handler).__name__} added")
 
-    # TODO: Add comment
     def add_endpoint(self, name, endpoint: EndpointAction):
+        """ Will add web endpoints (Flask) to this plugins list of
+         endpoints and also add them to the Flask app """
+
         name = name if name.startswith("/") else "/" + name
         self._tgb.web.app.add_url_rule(name, name, endpoint)
         self.endpoints[name] = endpoint
@@ -85,7 +90,8 @@ class TGBFPlugin:
         logging.info(f"Plugin '{self.get_name()}': Endpoint '{name}' added")
 
     def get_usage(self, replace: dict = None):
-        """ Return how to use the command """
+        """ Return how to use a command """
+
         usage = self.get_resource(f"{self.get_name()}.md")
 
         if usage:
@@ -101,8 +107,8 @@ class TGBFPlugin:
 
     def get_handle(self):
         """ Return the command string that triggers the plugin """
-        handle = self.config.get("handle").lower()
-        return handle if handle else self.get_name()
+        handle = self.config.get("handle")
+        return handle.lower() if handle else self.get_name()
 
     def get_category(self):
         """ Return the category of the plugin for the 'help' command """
@@ -132,24 +138,43 @@ class TGBFPlugin:
 
         return jobs[0]
 
-    # TODO: Maybe better set unique identifier as name?
-    def repeat_job(self, callback, interval, first=0, context=None, name=None):
-        """ Logic that gets executed periodically """
-        self._tgb.job_queue.run_repeating(
+    def run_repeating(self, callback, interval, first=0, context=None, name=None):
+        """ Executes the provided callback function indefinitely.
+        It will be executed every 'interval' (seconds) time. The
+        created job will be returned by this method. If you want
+        to stop the job, execute 'schedule_removal()' on it.
+
+        The job will be added to the job queue and the default
+        name of the job (if no 'name' provided) will be the name
+        of the plugin + '_<random 4 digit ID>' """
+
+        name = name + "_" + utl.id(4) if name else self.get_name() + "_" + utl.id(4)
+
+        return self._tgb.job_queue.run_repeating(
             callback,
             interval,
             first=first,
             context=context,
-            name=name if name else self.get_name())
+            name=name)
 
-    # TODO: Maybe better set unique identifier as name?
-    def run_job(self, callback, when, context=None, name=None):
-        """ Logic that gets executed once """
-        self._tgb.job_queue.run_once(
+    def run_once(self, callback, when, context=None, name=None):
+        """ Executes the provided callback function only one time.
+        It will be executed at the provided 'when' time. The
+        created job will be returned by this method. If you want
+        to stop the job before it gets executed, execute
+        'schedule_removal()' on it.
+
+        The job will be added to the job queue and the default
+        name of the job (if no 'name' provided) will be the name
+        of the plugin + '_<random 4 digit ID>' """
+
+        name = name + "_" + utl.id(4) if name else self.get_name() + "_" + utl.id(4)
+
+        return self._tgb.job_queue.run_once(
             callback,
             when,
             context=context,
-            name=name if name else self.get_name())
+            name=name)
 
     def enable_plugin(self, module_name):
         """ Enable a plugin """
@@ -237,10 +262,24 @@ class TGBFPlugin:
 
             return res
 
-    # TODO: Describe how arguments can be used
     def execute_sql(self, sql, *args, plugin="", db_name=""):
         """ Execute raw SQL statement on database for given
-        plugin and return the result if there is one """
+        plugin and return the result.
+
+        param: sql = the SQL query
+        param: *args = arguments for the SQL query
+        param: plugin = name of plugin that DB belongs too
+        param: db_name = name of DB in case it's not the
+        default (the name of the plugin)
+
+        Following data will be returned if error happens:
+        {"success": False, "data": None}
+
+        If no data available:
+        {"success": True, "data": None}
+
+        If database disabled:
+        {"success": False, "data": "Database disabled"} """
 
         res = {"success": None, "data": None}
 
@@ -412,7 +451,7 @@ class TGBFPlugin:
                 logging.error(f"Not possible to remove message: {e}")
 
         def remove():
-            self.run_job(
+            self.run_once(
                 remove_msg_job,
                 datetime.utcnow() + timedelta(seconds=after_secs),
                 context=f"{message.chat_id}_{message.message_id}")
