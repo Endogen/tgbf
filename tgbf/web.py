@@ -54,19 +54,3 @@ class FlaskAppWrapper(object):
 
     def run(self, debug=False):
         self.app.run(host='0.0.0.0', port=self.port, debug=debug)
-
-    def remove_endpoint(self, name: str):
-        name = name if name.startswith("/") else "/" + name
-
-        for rule in self.app.url_map._rules:
-            if str(rule) == name:
-                self.app.url_map._rules.remove(rule)
-                print("REMOVED!")
-
-        delete = [key for key in self.app.url_map._rules_by_endpoint if str(key) == name]
-        for key in delete:
-            del self.app.url_map._rules_by_endpoint[key]
-            print("REMOVED!")
-
-        self.app.url_map._remap = True
-        self.app.url_map.update()

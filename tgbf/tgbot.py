@@ -119,7 +119,6 @@ class TelegramBot:
         else:
             return {"success": False, "msg": f"{emo.ERROR} Plugin not enabled: {result[1]}"}
 
-    # FIXME: Still can't re-enable a plugin because of endpoints
     # TODO: Do i need this in here or is it enough to have it in the plugin class?
     def disable_plugin(self, name):
         """ Remove a plugin from the plugin list and also
@@ -127,12 +126,15 @@ class TelegramBot:
 
         for plugin in self.plugins:
             if plugin.get_name() == name.lower():
+                if plugin.endpoints:
+                    msg = f"{emo.ERROR} Not possible to disable a plugin that has an endpoint"
+                    return {"success": False, "msg": msg}
+
                 for handler in plugin.handlers:
                     for group, handler_list in self.dispatcher.handlers.items():
                         if handler in handler_list:
                             self.dispatcher.remove_handler(handler, group)
                             break
-                self.web.remove_endpoint("/usage")
                 self.plugins.remove(plugin)
                 logging.info(f"Plugin '{plugin.get_name()}' disabled")
                 break
