@@ -56,7 +56,7 @@ class Admin(TGBFPlugin):
 
             update.message.reply_text(msg)
 
-        # ---- Change global configuration ----
+        # ---- Change configuration (global or plugin) ----
         elif command == "cfg":
             conf = context.args[0].lower()
             context.args.pop(0)

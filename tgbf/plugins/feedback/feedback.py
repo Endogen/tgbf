@@ -37,8 +37,7 @@ class Feedback(TGBFPlugin):
         feedback = update.message.text.replace(f"/{self.get_handle()} ", "")
         self.notify(f"Feedback from {name}: {feedback}")
 
-        message = update.message.reply_text(f"Thanks for letting us know {emo.HEART}")
-        self.remove_msg(message, also_private=False)
-
         sql = self.get_resource("insert_feedback.sql")
         self.execute_sql(sql, user.id, name, user.username, feedback)
+
+        update.message.reply_text(f"Thanks for letting us know {emo.HEART}")

@@ -41,5 +41,3 @@ class Help(TGBFPlugin):
         message = update.message.reply_text(
             text=msg,
             disable_web_page_preview=True)
-
-        self.remove_msg(message, also_private=False)
