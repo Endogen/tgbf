@@ -103,7 +103,7 @@ class TGBFPlugin:
 
     def get_handle(self):
         """ Return the command string that triggers the plugin """
-        handle = self.config.get("handle")
+        handle = self.config.get("handle").lower()
         return handle if handle else self.get_name()
 
     def get_category(self):
@@ -520,13 +520,15 @@ class TGBFPlugin:
             dependencies = self.config.get("dependencies")
 
             if dependencies and isinstance(dependencies, list):
-                # TODO: Rework
-                plugins = [p.get_name() for p in self.get_plugins()]
+                plugin_names = [p.get_name() for p in self.get_plugins()]
 
                 for dependency in dependencies:
-                    if dependency.lower() not in plugins:
-                        # TODO: Add message about what is missing for which plugin
+                    if dependency.lower() not in plugin_names:
+                        msg = f"{emo.ERROR} Plugin '{self.get_name()}' is missing dependency '{dependency}'"
+                        update.message.reply_text(msg)
                         return
+            else:
+                logging.error(f"Dependencies for plugin '{self.get_name()}' not defined as list")
 
             return func(self, update, context, **kwargs)
         return _dependency
