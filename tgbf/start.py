@@ -147,5 +147,6 @@ class TGBF:
 
         # Start web interface
         self.tgb.start_web()
+
         # Go in idle mode
         self.tgb.bot_idle()
