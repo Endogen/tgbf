@@ -1,4 +1,4 @@
-# T2X-Bot Plugins
+# TGBF Plugins
 General info about plugins and specific info about plugins that are included per default
 
 Every plugin can add different handlers (from {PTB}[https://github.com/python-telegram-bot/python-telegram-bot]) and web endpoints ({Flask}[https://github.com/pallets/flask])

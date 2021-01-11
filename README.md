@@ -1,8 +1,8 @@
-# T2X-Bot
-T2X-Bot is a Telegram bot created by @endogen for the T2X community. Visit the [website](http://t2xtoken.io) to learn more about it.
+# TGBF - Telegram Bot Framework
+TGBF is a Telegram bot framework created by @endogen.
 
 ## Overview
-The bot is build around the [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) module and is polling based. [Webhook mode](https://github.com/python-telegram-bot/python-telegram-bot/wiki/Webhooks) is implemented but untested.
+The framework is build around the [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) module and is polling based. [Webhook mode](https://github.com/python-telegram-bot/python-telegram-bot/wiki/Webhooks) is implemented but untested.
 
 ### General bot features
 * Every command is a plugin
@@ -106,8 +106,6 @@ The bot is under active development and not considered finished yet. If you want
 If you decide to write your own plugin, check out the [Plugin Page](https://github.com/Endogen/T2X-Bot/tree/master/t2xbot/plugins) to read up on how to create a plugin and know about available plugins.
 
 ### Support
-If you'd like to support the project, consider donating T2X tokens to this address:  
-`TMMeFzXfVDPoGbSpSyXRNfTnhUZS7m8aRs`
-
-Or use the referral link:  
-[https://t2xtoken.io/?ref=TMMeFzXfVDPoGbSpSyXRNfTnhUZS7m8aRs](https://t2xtoken.io/?ref=TMMeFzXfVDPoGbSpSyXRNfTnhUZS7m8aRs)
+If you'd like to support the project, consider donating to one of these crypto addresses:
+- BCH: `qzken7mgslv0w9t4ycj4uganv66ljccsq5ngcepp6h`
+- XMR: `42eSjjHF63P3LtxcdeC71TT3ZCcGbTtk1aESTvfrz4VqYeKMFP9tbWhjmcUJZE3yVrgDjH8uZhnob9czCtm764cFDWYPe7c`
