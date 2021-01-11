@@ -1,3 +1,4 @@
+import logging
 import threading
 import tgbf.emoji as emo
 
@@ -22,6 +23,7 @@ class Shutdown(TGBFPlugin):
     def shutdown_callback(self, update: Update, context: CallbackContext):
         msg = f"{emo.GOODBYE} Shutting down..."
         update.message.reply_text(msg)
+        logging.info(msg)
 
         threading.Thread(target=self._shutdown_thread).start()
 
