@@ -34,8 +34,6 @@ class TGBF:
             f.truncate(0)
             f.write(f"{shebang}\n\n{command}")
 
-        os.chmod(filename, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-
     def _parse_args(self):
         """ Parse command line arguments """
 
