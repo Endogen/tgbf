@@ -141,6 +141,7 @@ cython_debug/
 
 # Custom TGBF
 .idea
+kill.sh
 /cfg/token.json
 log/
 dat/
