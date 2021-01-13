@@ -1,9 +1,9 @@
 import os
-import stat
 import json
 import logging
 import tgbf.constants as con
 
+from tgbf.singleton import SingleInstance
 from argparse import ArgumentParser
 from tgbf.tgbot import TelegramBot
 from tgbf.config import ConfigManager as Cfg
@@ -21,6 +21,9 @@ class TGBF:
 
         # Set up logging
         self._init_logger()
+
+        # Run only one instance
+        SingleInstance()
 
         # Read global config file and create Telegram bot
         self.cfg = Cfg(os.path.join(con.DIR_CFG, con.FILE_CFG))
