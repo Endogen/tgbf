@@ -3,9 +3,9 @@ import json
 import logging
 import tgbf.constants as con
 
-from tgbf.singleton import SingleInstance
-from argparse import ArgumentParser
 from tgbf.tgbot import TelegramBot
+from argparse import ArgumentParser
+from tgbf.singleton import SingleInstance
 from tgbf.config import ConfigManager as Cfg
 from logging.handlers import TimedRotatingFileHandler
 
@@ -13,9 +13,6 @@ from logging.handlers import TimedRotatingFileHandler
 class TGBF:
 
     def __init__(self):
-        # Create script to kill bot by PID
-        self.create_kill_script("kill.sh")
-
         # Parse command line arguments
         self.args = self._parse_args()
 
@@ -28,14 +25,6 @@ class TGBF:
         # Read global config file and create Telegram bot
         self.cfg = Cfg(os.path.join(con.DIR_CFG, con.FILE_CFG))
         self.tgb = TelegramBot(self.cfg, self._get_bot_token())
-
-    def create_kill_script(self, filename):
-        shebang = "#!/bin/bash"
-        command = f"kill -9 {os.getpid()}"
-
-        with open(filename, "w") as f:
-            f.truncate(0)
-            f.write(f"{shebang}\n\n{command}")
 
     def _parse_args(self):
         """ Parse command line arguments """
