@@ -13,7 +13,7 @@ class Feedback(TGBFPlugin):
             self.execute_sql(sql)
 
         self.add_handler(CommandHandler(
-            self.get_name(),
+            self.name,
             self.feedback_callback,
             pass_args=True,
             run_async=True))
@@ -34,7 +34,7 @@ class Feedback(TGBFPlugin):
         else:
             name = user.first_name
 
-        feedback = update.message.text.replace(f"/{self.get_handle()} ", "")
+        feedback = update.message.text.replace(f"/{self.handle()} ", "")
         self.notify(f"Feedback from {name}: {feedback}")
 
         sql = self.get_resource("insert_feedback.sql")

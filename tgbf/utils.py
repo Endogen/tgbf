@@ -84,3 +84,10 @@ def to_unix_time(date_time, millis=False):
 def from_unix_time(seconds, millis=False):
     from datetime import datetime
     return datetime.utcfromtimestamp(seconds / 1000 if millis else seconds)
+
+
+def get_external_ip():
+    import urllib.request, re
+    site = urllib.request.urlopen("http://checkip.dyndns.org/").read()
+    grab = re.findall(r"[0-9]+(?:\.[0-9]+){3}", site.decode("utf-8"))
+    return grab[0] if grab else None

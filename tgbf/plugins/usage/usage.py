@@ -20,8 +20,8 @@ class Usage(TGBFPlugin):
             group=1)
 
         # Add web interface to read usage database
-        web_pass = self.get_plugin_config().get("web_password")
-        self.add_endpoint(self.get_name(), EndpointAction(self.usage_web, web_pass))
+        web_pass = self.config.get("web_password")
+        self.add_endpoint(self.name, EndpointAction(self.usage_web, web_pass))
 
         return self
 

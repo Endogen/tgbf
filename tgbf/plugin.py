@@ -18,30 +18,33 @@ from datetime import datetime, timedelta
 from tgbf.web import EndpointAction
 
 
-# TODO: Add properties where needed
+# TODO: Clean up properties and methods
 class TGBFPlugin:
 
     def __init__(self, tg_bot: TelegramBot):
-        self._tgb = tg_bot
+        self._bot = tg_bot
+
+        # Set class name as name of this plugin
+        self._name = type(self).__name__.lower()
 
         # Access to global config
-        self.global_config = self._tgb.config
+        self._global_config = self._bot.config
 
         # Access to plugin config
-        self.config = self.get_plugin_config()
+        self._config = self._init_plugin_cfg()
 
         # All bot handlers for this plugin
-        self.handlers: List[Handler] = list()
+        self._handlers: List[Handler] = list()
 
         # All web endpoints for this plugin
-        self.endpoints: Dict[str, EndpointAction] = dict()
+        self._endpoints: Dict[str, EndpointAction] = dict()
 
     def __enter__(self):
         """ This method gets executed before the plugin gets loaded.
         Make sure to return 'self' if you override it """
 
         method = inspect.currentframe().f_code.co_name
-        msg = f"Method '{method}' of plugin '{self.get_name()}' not implemented"
+        msg = f"Method '{method}' of plugin '{self.name}' not implemented"
         logging.warning(msg)
 
         return self
@@ -50,11 +53,11 @@ class TGBFPlugin:
         """ This method gets executed after the plugin gets loaded """
         pass
 
-    def get_plugin_config(self):
+    def _init_plugin_cfg(self):
         """ Returns the plugin configuration. If the config
         file doesn't exist then it will be created """
 
-        cfg_file = f"{self.get_name()}.json"
+        cfg_file = f"{self.name}.json"
         cfg_fold = os.path.join(self.get_cfg_path())
         cfg_path = os.path.join(cfg_fold, cfg_file)
 
@@ -70,32 +73,89 @@ class TGBFPlugin:
         # Return plugin config
         return ConfigManager(cfg_path)
 
+    @property
+    def bot(self) -> TelegramBot:
+        return self._bot
+
+    @property
+    def name(self):
+        """ Return the name of the current plugin """
+        return self._name
+
+    @property
+    def handle(self):
+        """ Return the command string that triggers the plugin """
+        handle = self.config.get("handle")
+        return handle.lower() if handle else self.name
+
+    @property
+    def category(self):
+        """ Return the category of the plugin for the 'help' command """
+        return self.config.get("category")
+
+    @property
+    def description(self):
+        """ Return the description of the plugin """
+        return self.config.get("description")
+
+    @property
+    def plugins(self):
+        """ Return a list of all active plugins """
+        return self.bot.plugins
+
+    @property
+    def jobs(self):
+        """ Return a tuple with all currently active jobs """
+        return self.bot.job_queue.jobs()
+
+    @property
+    def global_config(self) -> ConfigManager:
+        """ Return the global configuration """
+        return self._global_config
+
+    @property
+    def config(self) -> ConfigManager:
+        """ Return the configuration for this plugin """
+        return self._config
+
+    @property
+    def handlers(self):
+        """ Return a list of bot handlers for this plugin """
+        return self._handlers
+
+    @property
+    def endpoints(self):
+        """ Return a dictionary with key = endpoint name and
+        value = EndpointAction for this plugin """
+        return self._endpoints
+
     def add_handler(self, handler: Handler, group: int = 0):
         """ Will add bot handlers to this plugins list of handlers
          and also add them to the bot dispatcher """
 
-        self._tgb.dispatcher.add_handler(handler, group)
+        self.bot.dispatcher.add_handler(handler, group)
         self.handlers.append(handler)
 
-        logging.info(f"Plugin '{self.get_name()}': {type(handler).__name__} added")
+        logging.info(f"Plugin '{self.name}': {type(handler).__name__} added")
 
     def add_endpoint(self, name, endpoint: EndpointAction):
         """ Will add web endpoints (Flask) to this plugins list of
          endpoints and also add them to the Flask app """
 
         name = name if name.startswith("/") else "/" + name
-        self._tgb.web.app.add_url_rule(name, name, endpoint)
+        self.bot.web.app.add_url_rule(name, name, endpoint)
         self.endpoints[name] = endpoint
 
-        logging.info(f"Plugin '{self.get_name()}': Endpoint '{name}' added")
+        logging.info(f"Plugin '{self.name}': Endpoint '{name}' added")
 
+    # TODO: Describe what 'replace' is an how to use
     def get_usage(self, replace: dict = None):
         """ Return how to use a command """
 
-        usage = self.get_resource(f"{self.get_name()}.md")
+        usage = self.get_resource(f"{self.name}.md")
 
         if usage:
-            usage = usage.replace("{{handle}}", self.get_handle())
+            usage = usage.replace("{{handle}}", self.handle())
 
             if replace:
                 for placeholder, value in replace.items():
@@ -105,33 +165,14 @@ class TGBFPlugin:
 
         return None
 
-    def get_handle(self):
-        """ Return the command string that triggers the plugin """
-        handle = self.config.get("handle")
-        return handle.lower() if handle else self.get_name()
-
-    def get_category(self):
-        """ Return the category of the plugin for the 'help' command """
-        return self.config.get("category")
-
-    def get_description(self):
-        """ Return the description of the plugin """
-        return self.config.get("description")
-
-    def get_plugins(self):
-        """ Return a list of all active plugins """
-        return self._tgb.plugins
-
-    def get_jobs(self):
-        """ Return a tuple with all currently active jobs """
-        return self._tgb.job_queue.jobs()
-
+    # TODO: Check 'run_repeating()' and 'run_once()' because job name is 'get_name + _ <random_id>'
+    #  so could return multiple jobs
     def get_job(self, name=None):
         """ Return the periodic job with the given name or
         None if 'interval' is not set in plugin config """
 
-        name = self.get_name() if not name else name
-        jobs = self._tgb.job_queue.get_jobs_by_name(name)
+        name = self.name if not name else name
+        jobs = self.bot.job_queue.get_jobs_by_name(name)
 
         if not jobs or len(jobs) < 1:
             return None
@@ -148,9 +189,9 @@ class TGBFPlugin:
         name of the job (if no 'name' provided) will be the name
         of the plugin + '_<random 4 digit ID>' """
 
-        name = name + "_" + utl.id(4) if name else self.get_name() + "_" + utl.id(4)
+        name = name + "_" + utl.id(4) if name else self.name + "_" + utl.id(4)
 
-        return self._tgb.job_queue.run_repeating(
+        return self.bot.job_queue.run_repeating(
             callback,
             interval,
             first=first,
@@ -168,9 +209,9 @@ class TGBFPlugin:
         name of the job (if no 'name' provided) will be the name
         of the plugin + '_<random 4 digit ID>' """
 
-        name = name + "_" + utl.id(4) if name else self.get_name() + "_" + utl.id(4)
+        name = name + "_" + utl.id(4) if name else self.name + "_" + utl.id(4)
 
-        return self._tgb.job_queue.run_once(
+        return self.bot.job_queue.run_once(
             callback,
             when,
             context=context,
@@ -178,11 +219,11 @@ class TGBFPlugin:
 
     def enable_plugin(self, name):
         """ Enable a plugin by providing its name """
-        return self._tgb.enable_plugin(name)
+        return self.bot.enable_plugin(name)
 
     def disable_plugin(self, name):
         """ Disable a plugin by providing its name """
-        return self._tgb.disable_plugin(name)
+        return self.bot.disable_plugin(name)
 
     def get_global_resource(self, filename):
         """ Return the content of the given file
@@ -262,6 +303,7 @@ class TGBFPlugin:
 
             return res
 
+    # TODO: Combine with 'execute_global_sql()'?
     def execute_sql(self, sql, *args, plugin="", db_name=""):
         """ Execute raw SQL statement on database for given
         plugin and return the result.
@@ -299,7 +341,7 @@ class TGBFPlugin:
             if plugin:
                 db_name = plugin + ".db"
             else:
-                db_name = self.get_name() + ".db"
+                db_name = self.name + ".db"
 
         if plugin:
             plugin = plugin.lower()
@@ -342,6 +384,7 @@ class TGBFPlugin:
 
             return res
 
+    # TODO: Combine with 'table_exists()' and do combine other similar uses too?
     def global_table_exists(self, table_name):
         """ Return TRUE if given table exists in global database, otherwise FALSE """
         db_path = os.path.join(os.getcwd(), c.DIR_DAT, c.FILE_DAT)
@@ -374,7 +417,7 @@ class TGBFPlugin:
             if plugin:
                 db_name = plugin + ".db"
             else:
-                db_name = self.get_name() + ".db"
+                db_name = self.name + ".db"
 
         if plugin:
             db_path = os.path.join(self.get_dat_path(plugin=plugin), db_name)
@@ -400,45 +443,41 @@ class TGBFPlugin:
         con.close()
         return exists
 
-    def get_name(self):
-        """ Return the name of the current plugin """
-        return type(self).__name__.lower()
-
-    def get_res_path(self, plugin=""):
+    def get_res_path(self, plugin=None):
         """ Return path of resource directory for this plugin """
         if not plugin:
-            plugin = self.get_name()
+            plugin = self.name
         return os.path.join(c.DIR_SRC, c.DIR_PLG, plugin, c.DIR_RES)
 
-    def get_cfg_path(self, plugin=""):
+    def get_cfg_path(self, plugin=None):
         """ Return path of configuration directory for this plugin """
         if not plugin:
-            plugin = self.get_name()
+            plugin = self.name
         return os.path.join(c.DIR_SRC, c.DIR_PLG, plugin, c.DIR_CFG)
 
-    def get_dat_path(self, plugin=""):
+    def get_dat_path(self, plugin=None):
         """ Return path of data directory for this plugin """
         if not plugin:
-            plugin = self.get_name()
+            plugin = self.name
         return os.path.join(c.DIR_SRC, c.DIR_PLG, plugin, c.DIR_DAT)
 
-    def get_plg_path(self, plugin=""):
+    def get_plg_path(self, plugin=None):
         """ Return path of current plugin directory """
         if not plugin:
-            plugin = self.get_name()
+            plugin = self.name
         return os.path.join(c.DIR_SRC, c.DIR_PLG, plugin)
 
     def plugin_available(self, plugin_name):
         """ Return TRUE if the given plugin is enabled or FALSE otherwise """
-        for plugin in self.get_plugins():
-            if plugin.get_name() == plugin_name.lower():
+        for plugin in self.plugins:
+            if plugin.name == plugin_name.lower():
                 return True
         return False
 
     def remove_msg(self, message: Message, after_secs, private=True, public=True):
         """ Remove a Telegram message after a given time """
 
-        is_private = self._tgb.updater.bot.get_chat(message.chat_id).type == Chat.PRIVATE
+        is_private = self.bot.updater.bot.get_chat(message.chat_id).type == Chat.PRIVATE
 
         def remove_msg_job(context: CallbackContext):
             param_lst = str(context.job.context).split("_")
@@ -467,7 +506,7 @@ class TGBFPlugin:
             for admin in self.global_config.get("admin", "ids"):
                 try:
                     msg = f"{emo.ALERT} Admin Notification {emo.ALERT}\n{some_input}"
-                    self._tgb.updater.bot.send_message(admin, msg)
+                    self.bot.updater.bot.send_message(admin, msg)
                 except Exception as e:
                     error = f"Not possible to notify admin id '{admin}'"
                     logging.error(f"{error}: {e}")
@@ -547,15 +586,15 @@ class TGBFPlugin:
             dependencies = self.config.get("dependencies")
 
             if dependencies and isinstance(dependencies, list):
-                plugin_names = [p.get_name() for p in self.get_plugins()]
+                plugin_names = [p.name for p in self.get_plugins()]
 
                 for dependency in dependencies:
                     if dependency.lower() not in plugin_names:
-                        msg = f"{emo.ERROR} Plugin '{self.get_name()}' is missing dependency '{dependency}'"
+                        msg = f"{emo.ERROR} Plugin '{self.name}' is missing dependency '{dependency}'"
                         update.message.reply_text(msg)
                         return
             else:
-                logging.error(f"Dependencies for plugin '{self.get_name()}' not defined as list")
+                logging.error(f"Dependencies for plugin '{self.name}' not defined as list")
 
             return func(self, update, context, **kwargs)
         return _dependency

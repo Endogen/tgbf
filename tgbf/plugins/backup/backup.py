@@ -16,7 +16,7 @@ class Backup(TGBFPlugin):
 
     def __enter__(self):
         self.add_handler(CommandHandler(
-            self.get_name(),
+            self.name,
             self.backup_callback,
             pass_args=True,
             run_async=True))
@@ -41,7 +41,7 @@ class Backup(TGBFPlugin):
         exclude = [con.DIR_LOG, con.DIR_TMP, self.BACKUP_DIR, "__pycache__"]
 
         # Path to store backup files
-        bck_path = os.path.join(con.DIR_SRC, con.DIR_PLG, self.get_name(), self.BACKUP_DIR)
+        bck_path = os.path.join(con.DIR_SRC, con.DIR_PLG, self.name, self.BACKUP_DIR)
 
         # Create folder to store backups
         os.makedirs(bck_path, exist_ok=True)

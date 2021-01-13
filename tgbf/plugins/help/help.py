@@ -9,7 +9,7 @@ class Help(TGBFPlugin):
 
     def __enter__(self):
         self.add_handler(CommandHandler(
-            self.get_name(),
+            self.name,
             self.help_callback,
             run_async=True))
 
@@ -19,14 +19,14 @@ class Help(TGBFPlugin):
     def help_callback(self, update: Update, context: CallbackContext):
         categories = OrderedDict()
 
-        for p in self.get_plugins():
-            if p.get_category() and p.get_description():
-                des = f"/{p.get_handle()} - {p.get_description()}"
+        for p in self.plugins:
+            if p.category and p.description:
+                des = f"/{p.handle} - {p.description}"
 
-                if p.get_category() not in categories:
-                    categories[p.get_category()] = [des]
+                if p.category not in categories:
+                    categories[p.category] = [des]
                 else:
-                    categories[p.get_category()].append(des)
+                    categories[p.category].append(des)
 
         msg = "Available Commands\n\n"
 
@@ -38,6 +38,4 @@ class Help(TGBFPlugin):
 
             msg += "\n"
 
-        message = update.message.reply_text(
-            text=msg,
-            disable_web_page_preview=True)
+        update.message.reply_text(text=msg, disable_web_page_preview=True)

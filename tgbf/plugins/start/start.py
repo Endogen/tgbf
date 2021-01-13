@@ -9,7 +9,7 @@ class Start(TGBFPlugin):
 
     def __enter__(self):
         self.add_handler(CommandHandler(
-            self.get_name(),
+            self.name,
             self.start_callback,
             run_async=True))
 

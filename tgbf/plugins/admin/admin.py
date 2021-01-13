@@ -16,7 +16,7 @@ class Admin(TGBFPlugin):
 
     def __enter__(self):
         self.add_handler(CommandHandler(
-            self.get_name(),
+            self.name,
             self.admin_callback,
             run_async=True))
 
@@ -88,8 +88,9 @@ class Admin(TGBFPlugin):
                         value = self.global_config.set(value, *context.args)
                     else:
                         cfg_file = f"{conf}.json"
-                        plg_conf = self.get_cfg_path(plugin=plugin)
+                        plg_conf = self.get_cfg_path(plugin)
                         cfg_path = os.path.join(plg_conf, cfg_file)
+                        # TODO: Better to get config via -> plugins --> p.config ?
                         ConfigManager(cfg_path).set(value, *context.args)
                 except Exception as e:
                     logging.error(e)

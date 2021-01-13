@@ -11,7 +11,7 @@ class Shutdown(TGBFPlugin):
 
     def __enter__(self):
         self.add_handler(CommandHandler(
-            self.get_name(),
+            self.name,
             self.shutdown_callback,
             run_async=True))
 
@@ -28,5 +28,5 @@ class Shutdown(TGBFPlugin):
         threading.Thread(target=self._shutdown_thread).start()
 
     def _shutdown_thread(self):
-        self._tgb.updater.stop()
-        self._tgb.updater.is_idle = False
+        self.bot.updater.stop()
+        self.bot.updater.is_idle = False

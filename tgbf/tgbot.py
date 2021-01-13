@@ -16,6 +16,7 @@ from tgbf.config import ConfigManager
 from tgbf.web import FlaskAppWrapper, EndpointAction
 
 
+# TODO: Add properties?
 class TelegramBot:
 
     def __init__(self, config: ConfigManager, token):
@@ -110,7 +111,7 @@ class TelegramBot:
         """ Load a plugin so that it can be used """
 
         for plugin in self.plugins:
-            if plugin.get_name() == module_name.lower():
+            if plugin.name == module_name.lower():
                 return {"success": True, "msg": "Plugin already active"}
 
         result = self._load_plugin(module_name)
@@ -125,7 +126,7 @@ class TelegramBot:
          remove all its handlers from the dispatcher """
 
         for plugin in self.plugins:
-            if plugin.get_name() == module_name.lower():
+            if plugin.name == module_name.lower():
                 if plugin.endpoints:
                     msg = f"{emo.ERROR} Not possible to disable a plugin that has an endpoint"
                     return {"success": False, "msg": msg}
@@ -136,7 +137,7 @@ class TelegramBot:
                             self.dispatcher.remove_handler(handler, group)
                             break
                 self.plugins.remove(plugin)
-                logging.info(f"Plugin '{plugin.get_name()}' disabled")
+                logging.info(f"Plugin '{plugin.name}' disabled")
                 break
 
         return {"success": True, "msg": f"{emo.DONE} Plugin disabled"}
@@ -168,7 +169,7 @@ class TelegramBot:
                 pass
 
             self.plugins.append(plugin)
-            msg = f"Plugin '{plugin.get_name()}' added"
+            msg = f"Plugin '{plugin.name}' added"
             logging.info(msg)
             return True, msg
         except Exception as e:
