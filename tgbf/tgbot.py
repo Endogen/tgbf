@@ -106,28 +106,26 @@ class TelegramBot:
         """ Go in idle mode """
         self.updater.idle()
 
-    # TODO: Do i need this in here or is it enough to have it in the plugin class?
-    def enable_plugin(self, name):
+    def enable_plugin(self, module_name):
         """ Load a plugin so that it can be used """
 
         for plugin in self.plugins:
-            if plugin.get_name() == name.lower():
+            if plugin.get_name() == module_name.lower():
                 return {"success": True, "msg": "Plugin already active"}
 
-        result = self._load_plugin(name)
+        result = self._load_plugin(module_name)
 
         if result[0]:
             return {"success": True, "msg": f"{emo.DONE} Plugin enabled"}
         else:
             return {"success": False, "msg": f"{emo.ERROR} Plugin not enabled: {result[1]}"}
 
-    # TODO: Do i need this in here or is it enough to have it in the plugin class?
-    def disable_plugin(self, name):
+    def disable_plugin(self, module_name):
         """ Remove a plugin from the plugin list and also
          remove all its handlers from the dispatcher """
 
         for plugin in self.plugins:
-            if plugin.get_name() == name.lower():
+            if plugin.get_name() == module_name.lower():
                 if plugin.endpoints:
                     msg = f"{emo.ERROR} Not possible to disable a plugin that has an endpoint"
                     return {"success": False, "msg": msg}

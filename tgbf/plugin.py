@@ -176,13 +176,13 @@ class TGBFPlugin:
             context=context,
             name=name)
 
-    def enable_plugin(self, module_name):
-        """ Enable a plugin """
-        return self._tgb.enable_plugin(module_name)
+    def enable_plugin(self, name):
+        """ Enable a plugin by providing its name """
+        return self._tgb.enable_plugin(name)
 
-    def disable_plugin(self, module_name):
-        """ Disable a plugin """
-        return self._tgb.disable_plugin(module_name)
+    def disable_plugin(self, name):
+        """ Disable a plugin by providing its name """
+        return self._tgb.disable_plugin(name)
 
     def get_global_resource(self, filename):
         """ Return the content of the given file
