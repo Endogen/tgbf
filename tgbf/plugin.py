@@ -6,19 +6,18 @@ import threading
 
 import tgbf.constants as c
 import tgbf.emoji as emo
-import tgbf.utils as utl
 
-from typing import List, Dict
 from pathlib import Path
+from typing import List, Dict, Tuple
 from telegram import ChatAction, Chat, Update, Message
 from telegram.ext import CallbackContext, Handler
+from telegram.ext.jobqueue import Job
 from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
 from datetime import datetime, timedelta
 from tgbf.web import EndpointAction
 
 
-# TODO: Clean up properties and methods
 class TGBFPlugin:
 
     def __init__(self, tg_bot: TelegramBot):
@@ -53,7 +52,7 @@ class TGBFPlugin:
         """ This method gets executed after the plugin gets loaded """
         pass
 
-    def _init_plugin_cfg(self):
+    def _init_plugin_cfg(self) -> ConfigManager:
         """ Returns the plugin configuration. If the config
         file doesn't exist then it will be created """
 
@@ -119,12 +118,12 @@ class TGBFPlugin:
         return self._config
 
     @property
-    def handlers(self):
+    def handlers(self) -> List[Handler]:
         """ Return a list of bot handlers for this plugin """
         return self._handlers
 
     @property
-    def endpoints(self):
+    def endpoints(self) -> Dict[str, EndpointAction]:
         """ Return a dictionary with key = endpoint name and
         value = EndpointAction for this plugin """
         return self._endpoints
@@ -148,9 +147,11 @@ class TGBFPlugin:
 
         logging.info(f"Plugin '{self.name}': Endpoint '{name}' added")
 
-    # TODO: Describe what 'replace' is an how to use
     def get_usage(self, replace: dict = None):
-        """ Return how to use a command """
+        """ Return how to use a command. Default resource '<plugin>.md'
+         will be loaded from the resource folder and if you provide a
+         dict with '<placeholder>,<value>' entries then placeholders in
+         the resource will be replaced with the corresponding <value> """
 
         usage = self.get_resource(f"{self.name}.md")
 
@@ -165,19 +166,40 @@ class TGBFPlugin:
 
         return None
 
-    # TODO: Check 'run_repeating()' and 'run_once()' because job name is 'get_name + _ <random_id>'
-    #  so could return multiple jobs
-    def get_job(self, name=None):
-        """ Return the periodic job with the given name or
-        None if 'interval' is not set in plugin config """
+    def get_global_resource(self, filename):
+        """ Return the content of the given file
+        from the global resource directory """
 
-        name = self.name if not name else name
-        jobs = self.bot.job_queue.get_jobs_by_name(name)
+        path = os.path.join(os.getcwd(), c.DIR_RES, filename)
+        return self._get_resource_content(path)
 
-        if not jobs or len(jobs) < 1:
+    def get_resource(self, filename, plugin=None):
+        """ Return the content of the given file from
+        the resource directory of the given plugin """
+
+        path = os.path.join(self.get_res_path(plugin), filename)
+        return self._get_resource_content(path)
+
+    def _get_resource_content(self, path):
+        """ Return the content of the file in the given path """
+
+        try:
+            with open(path, "r", encoding="utf8") as f:
+                return f.read()
+        except Exception as e:
+            logging.error(e)
+            self.notify(e)
             return None
 
-        return jobs[0]
+    def get_jobs(self, name=None) -> Tuple['Job', ...]:
+        """ Return jobs with given name or all jobs if not name given """
+
+        if name:
+            # Get all jobs with given name
+            return self.bot.job_queue.get_jobs_by_name(name)
+        else:
+            # Return all jobs
+            return self.bot.job_queue.jobs()
 
     def run_repeating(self, callback, interval, first=0, context=None, name=None):
         """ Executes the provided callback function indefinitely.
@@ -187,16 +209,14 @@ class TGBFPlugin:
 
         The job will be added to the job queue and the default
         name of the job (if no 'name' provided) will be the name
-        of the plugin + '_<random 4 digit ID>' """
-
-        name = name + "_" + utl.id(4) if name else self.name + "_" + utl.id(4)
+        of the plugin """
 
         return self.bot.job_queue.run_repeating(
             callback,
             interval,
             first=first,
             context=context,
-            name=name)
+            name=name if name else self.name)
 
     def run_once(self, callback, when, context=None, name=None):
         """ Executes the provided callback function only one time.
@@ -207,15 +227,13 @@ class TGBFPlugin:
 
         The job will be added to the job queue and the default
         name of the job (if no 'name' provided) will be the name
-        of the plugin + '_<random 4 digit ID>' """
-
-        name = name + "_" + utl.id(4) if name else self.name + "_" + utl.id(4)
+        of the plugin """
 
         return self.bot.job_queue.run_once(
             callback,
             when,
             context=context,
-            name=name)
+            name=name if name else self.name)
 
     def enable_plugin(self, name):
         """ Enable a plugin by providing its name """
@@ -225,85 +243,26 @@ class TGBFPlugin:
         """ Disable a plugin by providing its name """
         return self.bot.disable_plugin(name)
 
-    def get_global_resource(self, filename):
-        """ Return the content of the given file
-        from the global 'resource' directory """
-
-        path = os.path.join(os.getcwd(), c.DIR_RES, filename)
-
-        try:
-            with open(path, "r", encoding="utf8") as f:
-                return f.read()
-        except Exception as e:
-            logging.error(e)
-            self.notify(e)
-            return None
-
-    def get_resource(self, filename, plugin=""):
-        """ Return the content of the given file from
-        the 'resource' directory of the plugin """
-        path = os.path.join(self.get_res_path(plugin), filename)
-
-        try:
-            with open(path, "r", encoding="utf8") as f:
-                return f.read()
-        except Exception as e:
-            logging.error(e)
-            self.notify(e)
-            return None
-
     def execute_global_sql(self, sql, *args):
         """ Execute raw SQL statement on the global
-        database and return the result if there is one """
+        database and return the result
 
-        res = {"success": None, "data": None}
+        param: sql = the SQL query
+        param: *args = arguments for the SQL query
 
-        # Check if database usage is enabled
-        if not self.global_config.get("database", "use_db"):
-            res["data"] = "Database disabled"
-            res["success"] = False
-            return res
+        Following data will be returned
+        If error happens:
+        {"success": False, "data": None}
 
-        timeout = self.global_config.get("database", "timeout")
-        db_timeout = timeout if timeout else 5
+        If no data available:
+        {"success": True, "data": None}
+
+        If database disabled:
+        {"success": False, "data": "Database disabled"} """
 
         db_path = os.path.join(os.getcwd(), c.DIR_DAT, c.FILE_DAT)
+        return self._get_database_content(db_path, sql, *args)
 
-        try:
-            # Create directory if it doesn't exist
-            directory = os.path.dirname(db_path)
-            os.makedirs(directory, exist_ok=True)
-        except Exception as e:
-            res["data"] = str(e)
-            res["success"] = False
-            logging.error(e)
-            self.notify(e)
-
-        con = None
-        cur = None
-
-        try:
-            con = sqlite3.connect(db_path, timeout=db_timeout)
-            cur = con.cursor()
-            cur.execute(sql, args)
-            con.commit()
-
-            res["data"] = cur.fetchall()
-            res["success"] = True
-        except Exception as e:
-            res["data"] = str(e)
-            res["success"] = False
-            logging.error(e)
-            self.notify(e)
-        finally:
-            if cur:
-                cur.close()
-            if con:
-                con.close()
-
-            return res
-
-    # TODO: Combine with 'execute_global_sql()'?
     def execute_sql(self, sql, *args, plugin="", db_name=""):
         """ Execute raw SQL statement on database for given
         plugin and return the result.
@@ -314,7 +273,8 @@ class TGBFPlugin:
         param: db_name = name of DB in case it's not the
         default (the name of the plugin)
 
-        Following data will be returned if error happens:
+        Following data will be returned
+        If error happens:
         {"success": False, "data": None}
 
         If no data available:
@@ -322,17 +282,6 @@ class TGBFPlugin:
 
         If database disabled:
         {"success": False, "data": "Database disabled"} """
-
-        res = {"success": None, "data": None}
-
-        # Check if database usage is enabled
-        if not self.global_config.get("database", "use_db"):
-            res["data"] = "Database disabled"
-            res["success"] = False
-            return res
-
-        timeout = self.global_config.get("database", "timeout")
-        db_timeout = timeout if timeout else 5
 
         if db_name:
             if not db_name.lower().endswith(".db"):
@@ -350,6 +299,22 @@ class TGBFPlugin:
         else:
             db_path = os.path.join(self.get_dat_path(), db_name)
 
+        return self._get_database_content(db_path, sql, *args)
+
+    def _get_database_content(self, db_path, sql, *args):
+        """ Open database connection and execute SQL statement """
+
+        res = {"success": None, "data": None}
+
+        # Check if database usage is enabled
+        if not self.global_config.get("database", "use_db"):
+            res["data"] = "Database disabled"
+            res["success"] = False
+            return res
+
+        timeout = self.global_config.get("database", "timeout")
+        db_timeout = timeout if timeout else 5
+
         try:
             # Create directory if it doesn't exist
             directory = os.path.dirname(db_path)
@@ -384,32 +349,15 @@ class TGBFPlugin:
 
             return res
 
-    # TODO: Combine with 'table_exists()' and do combine other similar uses too?
     def global_table_exists(self, table_name):
         """ Return TRUE if given table exists in global database, otherwise FALSE """
+
         db_path = os.path.join(os.getcwd(), c.DIR_DAT, c.FILE_DAT)
+        return self._database_table_exists(db_path, table_name)
 
-        if not Path(db_path).is_file():
-            return False
+    def table_exists(self, table_name, plugin=None, db_name=None):
+        """ Return TRUE if given table existsin given plugin, otherwise FALSE """
 
-        con = sqlite3.connect(db_path)
-        cur = con.cursor()
-        exists = False
-
-        statement = self.get_global_resource("table_exists.sql")
-
-        try:
-            if cur.execute(statement, [table_name]).fetchone():
-                exists = True
-        except Exception as e:
-            logging.error(e)
-            self.notify(e)
-
-        con.close()
-        return exists
-
-    def table_exists(self, table_name, plugin="", db_name=""):
-        """ Return TRUE if given table exists, otherwise FALSE """
         if db_name:
             if not db_name.lower().endswith(".db"):
                 db_name += ".db"
@@ -423,6 +371,11 @@ class TGBFPlugin:
             db_path = os.path.join(self.get_dat_path(plugin=plugin), db_name)
         else:
             db_path = os.path.join(self.get_dat_path(), db_name)
+
+        return self._database_table_exists(db_path, table_name)
+
+    def _database_table_exists(self, db_path, table_name):
+        """ Open connection to database and check if given table exists """
 
         if not Path(db_path).is_file():
             return False
