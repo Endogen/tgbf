@@ -16,7 +16,6 @@ from tgbf.config import ConfigManager
 from tgbf.web import FlaskAppWrapper, EndpointAction
 
 
-# TODO: Add properties?
 class TelegramBot:
 
     def __init__(self, config: ConfigManager, token):
