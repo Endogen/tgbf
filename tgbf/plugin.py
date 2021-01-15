@@ -39,18 +39,25 @@ class TGBFPlugin:
         self._endpoints: Dict[str, EndpointAction] = dict()
 
     def __enter__(self):
-        """ This method gets executed before the plugin gets loaded.
-        Make sure to return 'self' if you override it """
+        """ This method gets executed after __init__() but before
+        load(). Make sure to return 'self' if you override it """
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """ This method gets executed after __init__() and after load() """
+        pass
+
+    def load(self):
+        """ This method will be executed after __init__() and
+         after __enter__() but before __exit__(). It's typically
+         used to add handlers and endpoints.
+
+         It will not be executed if the configuration file of the
+         plugin has the 'active = false' entry """
 
         method = inspect.currentframe().f_code.co_name
         msg = f"Method '{method}' of plugin '{self.name}' not implemented"
         logging.warning(msg)
-
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """ This method gets executed after the plugin gets loaded """
-        pass
 
     def _init_plugin_cfg(self) -> ConfigManager:
         """ Returns the plugin configuration. If the config
@@ -235,13 +242,42 @@ class TGBFPlugin:
             context=context,
             name=name if name else self.name)
 
-    def enable_plugin(self, name):
-        """ Enable a plugin by providing its name """
-        return self.bot.enable_plugin(name)
+    def enable_plugin(self, name, persist=False):
+        """ Load a plugin so that it can be used """
 
-    def disable_plugin(self, name):
-        """ Disable a plugin by providing its name """
-        return self.bot.disable_plugin(name)
+        for plugin in self.plugins:
+            if plugin.name == name.lower():
+                return {"success": False, "msg": f"{emo.DONE} Plugin already enabled"}
+
+        res = self.bot.load_plugin(name, force=True if persist else False)
+
+        emoji = f"{emo.DONE}" if res[0] else f"{emo.ERROR}"
+        return {"success": res[0], "msg": f"{emoji} Plugin enabled"}
+
+    def disable_plugin(self, name, persist=False):
+        """ Remove a plugin from the plugin list and also
+         remove all its handlers from the dispatcher """
+
+        for plugin in self.plugins:
+            if plugin.name == name.lower():
+                if persist:
+                    plugin.config.set(False, "active")
+
+                if plugin.endpoints:
+                    msg = f"{emo.ERROR} Can not disable a plugin that has an endpoint"
+                    return {"success": False, "msg": msg}
+
+                for handler in plugin.handlers:
+                    for group, handler_list in self.bot.dispatcher.handlers.items():
+                        if handler in handler_list:
+                            self.bot.dispatcher.remove_handler(handler, group)
+                            break
+
+                self.plugins.remove(plugin)
+                logging.info(f"Plugin '{plugin.name}' disabled")
+                break
+
+        return {"success": True, "msg": f"{emo.DONE} Plugin disabled"}
 
     def execute_global_sql(self, sql, *args):
         """ Execute raw SQL statement on the global
@@ -455,6 +491,9 @@ class TGBFPlugin:
         """ All admins in global config will get a message with the given text.
          Primarily used for exceptions but can be used with other inputs too. """
 
+        if isinstance(some_input, Exception):
+            some_input = repr(some_input)
+
         if self.global_config.get("admin", "notify_on_error"):
             for admin in self.global_config.get("admin", "ids"):
                 try:
@@ -539,7 +578,7 @@ class TGBFPlugin:
             dependencies = self.config.get("dependencies")
 
             if dependencies and isinstance(dependencies, list):
-                plugin_names = [p.name for p in self.get_plugins()]
+                plugin_names = [p.name for p in self.plugins]
 
                 for dependency in dependencies:
                     if dependency.lower() not in plugin_names:
