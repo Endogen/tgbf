@@ -14,13 +14,11 @@ from tgbf.plugin import TGBFPlugin
 # TODO: Error if only one argument provided
 class Admin(TGBFPlugin):
 
-    def __enter__(self):
+    def load(self):
         self.add_handler(CommandHandler(
             self.name,
             self.admin_callback,
             run_async=True))
-
-        return self
 
     @TGBFPlugin.owner
     @TGBFPlugin.private
@@ -48,13 +46,13 @@ class Admin(TGBFPlugin):
 
             if res["success"]:
                 if res["data"]:
-                    msg = '\n'.join(str(s) for s in res["data"])
+                    emoji = '\n'.join(str(s) for s in res["data"])
                 else:
-                    msg = f"{emo.INFO} No data returned"
+                    emoji = f"{emo.INFO} No data returned"
             else:
-                msg = f"{emo.ERROR} {res['data']}"
+                emoji = f"{emo.ERROR} {res['data']}"
 
-            update.message.reply_text(msg)
+            update.message.reply_text(emoji)
 
         # ---- Change configuration (global or plugin) ----
         elif command == "cfg":
@@ -94,8 +92,8 @@ class Admin(TGBFPlugin):
                         ConfigManager(cfg_path).set(value, *context.args)
                 except Exception as e:
                     logging.error(e)
-                    msg = f"{emo.ERROR} {e}"
-                    update.message.reply_text(msg)
+                    emoji = f"{emo.ERROR} {e}"
+                    update.message.reply_text(emoji)
                     return
 
                 update.message.reply_text(f"{emo.DONE} Config changed")
@@ -112,8 +110,8 @@ class Admin(TGBFPlugin):
                         value = ConfigManager(cfg_path).get(*context.args)
                 except Exception as e:
                     logging.error(e)
-                    msg = f"{emo.ERROR} {e}"
-                    update.message.reply_text(msg)
+                    emoji = f"{emo.ERROR} {e}"
+                    update.message.reply_text(emoji)
                     return
 
                 update.message.reply_text(value)
@@ -142,9 +140,10 @@ class Admin(TGBFPlugin):
                         parse_mode=ParseMode.MARKDOWN)
                     return
 
-                update.message.reply_text(f"{res['msg']}")
+                update.message.reply_text(res["msg"])
             except Exception as e:
-                update.message.reply_text(text=f"{emo.ERROR} {e}")
+                update.message.reply_text(text=f"{emo.ERROR} {repr(e)}")
+                logging.error(repr(e))
 
         else:
             update.message.reply_text(

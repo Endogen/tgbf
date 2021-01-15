@@ -7,7 +7,7 @@ from tgbf.web import EndpointAction
 
 class Usage(TGBFPlugin):
 
-    def __enter__(self):
+    def load(self):
         if not self.table_exists("usage"):
             sql = self.get_resource("create_usage.sql")
             self.execute_sql(sql)
@@ -22,8 +22,6 @@ class Usage(TGBFPlugin):
         # Add web interface to read usage database
         web_pass = self.config.get("web_password")
         self.add_endpoint(self.name, EndpointAction(self.usage_web, web_pass))
-
-        return self
 
     def usage_callback(self, update, context):
         try:

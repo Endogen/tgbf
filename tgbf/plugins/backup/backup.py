@@ -14,14 +14,12 @@ class Backup(TGBFPlugin):
 
     BACKUP_DIR = "bck"
 
-    def __enter__(self):
+    def load(self):
         self.add_handler(CommandHandler(
             self.name,
             self.backup_callback,
             pass_args=True,
             run_async=True))
-
-        return self
 
     @TGBFPlugin.owner
     @TGBFPlugin.private

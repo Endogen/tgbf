@@ -10,13 +10,11 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Logfile(TGBFPlugin):
 
-    def __enter__(self):
+    def load(self):
         self.add_handler(CommandHandler(
             self.name,
             self.logfile_callback,
             run_async=True))
-
-        return self
 
     @TGBFPlugin.owner
     @TGBFPlugin.private

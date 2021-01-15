@@ -7,13 +7,11 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Help(TGBFPlugin):
 
-    def __enter__(self):
+    def load(self):
         self.add_handler(CommandHandler(
             self.name,
             self.help_callback,
             run_async=True))
-
-        return self
 
     @TGBFPlugin.send_typing
     def help_callback(self, update: Update, context: CallbackContext):

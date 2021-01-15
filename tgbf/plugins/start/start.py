@@ -7,13 +7,11 @@ class Start(TGBFPlugin):
 
     ABOUT_FILE = "about.md"
 
-    def __enter__(self):
+    def load(self):
         self.add_handler(CommandHandler(
             self.name,
             self.start_callback,
             run_async=True))
-
-        return self
 
     @TGBFPlugin.send_typing
     def start_callback(self, update: Update, context: CallbackContext):

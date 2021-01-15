@@ -7,7 +7,7 @@ from telegram.ext import CallbackContext, CommandHandler
 
 class Feedback(TGBFPlugin):
 
-    def __enter__(self):
+    def load(self):
         if not self.table_exists("feedback"):
             sql = self.get_resource("create_feedback.sql")
             self.execute_sql(sql)
@@ -17,8 +17,6 @@ class Feedback(TGBFPlugin):
             self.feedback_callback,
             pass_args=True,
             run_async=True))
-
-        return self
 
     @TGBFPlugin.send_typing
     def feedback_callback(self, update: Update, context: CallbackContext):
@@ -34,7 +32,7 @@ class Feedback(TGBFPlugin):
         else:
             name = user.first_name
 
-        feedback = update.message.text.replace(f"/{self.handle()} ", "")
+        feedback = update.message.text.replace(f"/{self.handle} ", "")
         self.notify(f"Feedback from {name}: {feedback}")
 
         sql = self.get_resource("insert_feedback.sql")
