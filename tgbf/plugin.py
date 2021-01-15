@@ -163,7 +163,7 @@ class TGBFPlugin:
         usage = self.get_resource(f"{self.name}.md")
 
         if usage:
-            usage = usage.replace("{{handle}}", self.handle())
+            usage = usage.replace("{{handle}}", self.handle)
 
             if replace:
                 for placeholder, value in replace.items():
