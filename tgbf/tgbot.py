@@ -113,7 +113,7 @@ class TelegramBot:
             if plugin.name == module_name.lower():
                 return {"success": True, "msg": "Plugin already active"}
 
-        result = self._load_plugin(module_name)
+        result = self.load_plugin(module_name)
 
         if result[0]:
             return {"success": True, "msg": f"{emo.DONE} Plugin enabled"}
@@ -149,12 +149,12 @@ class TelegramBot:
                 for folder in folders:
                     if folder.startswith("_"):
                         continue
-                    self._load_plugin(f"{folder}.py")
+                    self.load_plugin(f"{folder}.py")
                 break
         except Exception as e:
             logging.error(e)
 
-    def _load_plugin(self, name):
+    def load_plugin(self, name, force=False):
         """ Load a single plugin """
 
         try:
@@ -165,14 +165,23 @@ class TelegramBot:
             reload(module)
 
             with getattr(module, module_name.capitalize())(self) as plugin:
-                pass
+                if force:
+                    plugin.config.remove("active")
 
-            self.plugins.append(plugin)
-            msg = f"Plugin '{plugin.name}' added"
-            logging.info(msg)
-            return True, msg
+                active = plugin.config.get("active")
+                if active is not None and active is False:
+                    msg = f"Plugin '{name}' not activated"
+                    logging.info(msg)
+                    return False, msg
+
+                plugin.load()
+
+                self.plugins.append(plugin)
+                msg = f"Plugin '{plugin.name}' activated"
+                logging.info(msg)
+                return True, msg
         except Exception as e:
-            logging.error(f"ERROR: Plugin '{name}' can not be added: {e}")
+            logging.error(f"ERROR: Plugin '{name}' can not be activated: {e}")
             return False, str(e)
 
     def _update_plugin(self, update: Update, context: CallbackContext):
