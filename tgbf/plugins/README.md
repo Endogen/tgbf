@@ -10,10 +10,11 @@ A plugin configuration file can be empty or even not existing. If you provide a 
 - `handle`: If the plugin handle should be differnt from the plugin name then provide it here
 - `category`: If you want to list the plugin in the /help command, then provide a category
 - `description`: If you want to list the plugin in the /help command, then provide a description
-- `private`: If you use the "private" decorator in your plugin then you can disable it if you set `private = False` in the config
-- `public`: If you use the "public" decorator in your plugin then you can disable it if you set `public = False` in the config
-- `owner`: If you use the "owner" decorator in your plugin then you can disable it if you set `owner = False` in the config
+- `private`: If you use the "private" decorator in your plugin then you can disable it if you set `private = false` in the config
+- `public`: If you use the "public" decorator in your plugin then you can disable it if you set `public = false` in the config
+- `owner`: If you use the "owner" decorator in your plugin then you can disable it if you set `owner = false` in the config
 - `admins`: Needs to be a list. If you use the "owner" decorator in your plugin then you can add admins for this plugin by adding Telegram IDs as Integers to the list
+- `active`: If you set `active = false` then the plugin will not be loaded next time the bot (re-)starts
 
 ## Default plugins
 This is a list of out-of-the-box available plugins for this bot
