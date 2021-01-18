@@ -30,7 +30,7 @@ class TGBFPlugin:
         self._global_config = self._bot.config
 
         # Access to plugin config
-        self._config = self._init_plugin_cfg()
+        self._config = self.get_config_manager()
 
         # All bot handlers for this plugin
         self._handlers: List[Handler] = list()
@@ -59,12 +59,28 @@ class TGBFPlugin:
         msg = f"Method '{method}' of plugin '{self.name}' not implemented"
         logging.warning(msg)
 
-    def _init_plugin_cfg(self) -> ConfigManager:
+    def cleanup(self):
+        """ Overwrite this method if you want to clean something up
+         before the plugin will be disabled """
+        pass
+
+    def callback_cfg_change(self, value, *keys):
+        """ Overwrite this method if you need some logic to be executed
+         after the plugin configuration changed """
+        pass
+
+    # TODO: Add callback function and per default use 'callback_cfg_change()'
+    def get_config_manager(self, plugin=None) -> ConfigManager:
         """ Returns the plugin configuration. If the config
         file doesn't exist then it will be created """
 
-        cfg_file = f"{self.name}.json"
-        cfg_fold = os.path.join(self.get_cfg_path())
+        if plugin:
+            cfg_file = plugin.lower() + ".json"
+            cfg_fold = os.path.join(self.get_cfg_path(plugin=plugin))
+        else:
+            cfg_file = f"{self.name}.json"
+            cfg_fold = os.path.join(self.get_cfg_path())
+
         cfg_path = os.path.join(cfg_fold, cfg_file)
 
         # Create config directory if it doesn't exist
@@ -241,43 +257,6 @@ class TGBFPlugin:
             when,
             context=context,
             name=name if name else self.name)
-
-    def enable_plugin(self, name, persist=False):
-        """ Load a plugin so that it can be used """
-
-        for plugin in self.plugins:
-            if plugin.name == name.lower():
-                return {"success": False, "msg": f"{emo.DONE} Plugin already enabled"}
-
-        res = self.bot.load_plugin(name, force=True if persist else False)
-
-        emoji = f"{emo.DONE}" if res[0] else f"{emo.ERROR}"
-        return {"success": res[0], "msg": f"{emoji} Plugin enabled"}
-
-    def disable_plugin(self, name, persist=False):
-        """ Remove a plugin from the plugin list and also
-         remove all its handlers from the dispatcher """
-
-        for plugin in self.plugins:
-            if plugin.name == name.lower():
-                if persist:
-                    plugin.config.set(False, "active")
-
-                if plugin.endpoints:
-                    msg = f"{emo.ERROR} Can not disable a plugin that has an endpoint"
-                    return {"success": False, "msg": msg}
-
-                for handler in plugin.handlers:
-                    for group, handler_list in self.bot.dispatcher.handlers.items():
-                        if handler in handler_list:
-                            self.bot.dispatcher.remove_handler(handler, group)
-                            break
-
-                self.plugins.remove(plugin)
-                logging.info(f"Plugin '{plugin.name}' disabled")
-                break
-
-        return {"success": True, "msg": f"{emo.DONE} Plugin disabled"}
 
     def execute_global_sql(self, sql, *args):
         """ Execute raw SQL statement on the global

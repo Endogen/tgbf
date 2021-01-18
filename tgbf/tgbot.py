@@ -106,55 +106,7 @@ class TelegramBot:
         """ Go in idle mode """
         self.updater.idle()
 
-    def enable_plugin(self, module_name):
-        """ Load a plugin so that it can be used """
-
-        for plugin in self.plugins:
-            if plugin.name == module_name.lower():
-                return {"success": True, "msg": "Plugin already active"}
-
-        result = self.load_plugin(module_name)
-
-        if result[0]:
-            return {"success": True, "msg": f"{emo.DONE} Plugin enabled"}
-        else:
-            return {"success": False, "msg": f"{emo.ERROR} Plugin not enabled: {result[1]}"}
-
-    def disable_plugin(self, module_name):
-        """ Remove a plugin from the plugin list and also
-         remove all its handlers from the dispatcher """
-
-        for plugin in self.plugins:
-            if plugin.name == module_name.lower():
-                if plugin.endpoints:
-                    msg = f"{emo.ERROR} Not possible to disable a plugin that has an endpoint"
-                    return {"success": False, "msg": msg}
-
-                for handler in plugin.handlers:
-                    for group, handler_list in self.dispatcher.handlers.items():
-                        if handler in handler_list:
-                            self.dispatcher.remove_handler(handler, group)
-                            break
-                self.plugins.remove(plugin)
-                logging.info(f"Plugin '{plugin.name}' disabled")
-                break
-
-        return {"success": True, "msg": f"{emo.DONE} Plugin disabled"}
-
-    def _load_plugins(self):
-        """ Load all plugins from the 'plugins' folder """
-
-        try:
-            for _, folders, _ in os.walk(os.path.join(con.DIR_SRC, con.DIR_PLG)):
-                for folder in folders:
-                    if folder.startswith("_"):
-                        continue
-                    self.load_plugin(f"{folder}.py")
-                break
-        except Exception as e:
-            logging.error(e)
-
-    def load_plugin(self, name, force=False):
+    def enable_plugin(self, name):
         """ Load a single plugin """
 
         try:
@@ -165,24 +117,75 @@ class TelegramBot:
             reload(module)
 
             with getattr(module, module_name.capitalize())(self) as plugin:
-                if force:
-                    plugin.config.remove("active")
-
                 active = plugin.config.get("active")
                 if active is not None and active is False:
-                    msg = f"Plugin '{name}' not activated"
+                    msg = f"Plugin '{name}' not enabled"
                     logging.info(msg)
                     return False, msg
 
-                plugin.load()
+                try:
+                    plugin.load()
 
-                self.plugins.append(plugin)
-                msg = f"Plugin '{plugin.name}' activated"
+                    self.plugins.append(plugin)
+                    msg = f"Plugin '{plugin.name}' enabled"
+                    logging.info(msg)
+                    return True, msg
+                except Exception as e:
+                    msg = f"ERROR: Plugin '{plugin.name}' load() failed: {e}"
+                    logging.error(msg)
+                    return False, str(e)
+        except Exception as e:
+            msg = f"ERROR: Plugin '{name}' can not be enabled: {e}"
+            logging.error(msg)
+            return False, str(e)
+
+    def disable_plugin(self, module_name):
+        """ Remove a plugin from the plugin list and also
+         remove all its handlers from the dispatcher """
+
+        for plugin in self.plugins:
+            if plugin.name == module_name.lower():
+
+                # Remove endpoints (currently not possible)
+                if plugin.endpoints:
+                    msg = f"Not possible to disable a plugin that has an endpoint"
+                    logging.info(msg)
+                    return False, msg
+
+                # Remove bot handlers
+                for handler in plugin.handlers:
+                    for group, handler_list in self.dispatcher.handlers.items():
+                        if handler in handler_list:
+                            self.dispatcher.remove_handler(handler, group)
+                            break
+
+                # Remove plugin from list of all plugins
+                self.plugins.remove(plugin)
+
+                try:
+                    # Run plugins cleanup method
+                    plugin.cleanup()
+                except Exception as e:
+                    msg = f"Plugin '{plugin.name}' cleanup failed: {e}"
+                    logging.error(msg)
+                    return False, str(e)
+
+                msg = f"Plugin '{plugin.name}' disabled"
                 logging.info(msg)
                 return True, msg
+
+    def _load_plugins(self):
+        """ Load all plugins from the 'plugins' folder """
+
+        try:
+            for _, folders, _ in os.walk(os.path.join(con.DIR_SRC, con.DIR_PLG)):
+                for folder in folders:
+                    if folder.startswith("_"):
+                        continue
+                    self.enable_plugin(f"{folder}.py")
+                break
         except Exception as e:
-            logging.error(f"ERROR: Plugin '{name}' can not be activated: {e}")
-            return False, str(e)
+            logging.error(e)
 
     def _update_plugin(self, update: Update, context: CallbackContext):
         """

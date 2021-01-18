@@ -23,7 +23,7 @@
         "timeout": 10
     },
     "web": {
-        "use_web": true,
+        "use_web": false,
         "port": 4987
     }
 }

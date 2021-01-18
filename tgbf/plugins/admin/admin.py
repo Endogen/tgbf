@@ -83,13 +83,9 @@ class Admin(TGBFPlugin):
 
                 try:
                     if plugin == "-":
-                        value = self.global_config.set(value, *context.args)
+                        self.global_config.set(value, *context.args)
                     else:
-                        cfg_file = f"{conf}.json"
-                        plg_conf = self.get_cfg_path(plugin)
-                        cfg_path = os.path.join(plg_conf, cfg_file)
-                        # TODO: Better to get config via -> plugins --> p.config ?
-                        ConfigManager(cfg_path).set(value, *context.args)
+                        self.get_config_manager(plugin=plugin).set(value, *context.args)
                 except Exception as e:
                     logging.error(e)
                     emoji = f"{emo.ERROR} {e}"
@@ -127,11 +123,11 @@ class Admin(TGBFPlugin):
             try:
                 # Enable plugin
                 if context.args[0].lower() == "enable":
-                    res = self.enable_plugin(plugin)
+                    res = self.bot.enable_plugin(plugin)
 
                 # Disable plugin
                 elif context.args[0].lower() == "disable":
-                    res = self.disable_plugin(plugin)
+                    res = self.bot.disable_plugin(plugin)
 
                 # Wrong sub-command
                 else:
@@ -140,7 +136,8 @@ class Admin(TGBFPlugin):
                         parse_mode=ParseMode.MARKDOWN)
                     return
 
-                update.message.reply_text(res["msg"])
+                emoji = f"{emo.DONE} " if res[0] else f"{emo.ERROR} "
+                update.message.reply_text(emoji + res[1])
             except Exception as e:
                 update.message.reply_text(text=f"{emo.ERROR} {repr(e)}")
                 logging.error(repr(e))
