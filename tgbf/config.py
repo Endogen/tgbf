@@ -20,7 +20,7 @@ class ConfigManager(Thread):
     # Ignore reloading config?
     _ignore = False
 
-    def __init__(self, config_file, callback: Callable = None, callback_pass_args=False):
+    def __init__(self, config_file, callback: Callable = None, callback_pass_args=True):
         """ This class takes a JSON config file and makes it available
          so that if you provide a key, you will get the value back.
          Values can also bet set or removed from the config. Setting

@@ -85,7 +85,7 @@ class Admin(TGBFPlugin):
                     if plugin == "-":
                         self.global_config.set(value, *context.args)
                     else:
-                        self.get_config_manager(plugin=plugin).set(value, *context.args)
+                        self.get_cfg_manager(plugin=plugin).set(value, *context.args)
                 except Exception as e:
                     logging.error(e)
                     emoji = f"{emo.ERROR} {e}"

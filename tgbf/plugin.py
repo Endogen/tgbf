@@ -8,7 +8,7 @@ import tgbf.constants as c
 import tgbf.emoji as emo
 
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Callable
 from telegram import ChatAction, Chat, Update, Message
 from telegram.ext import CallbackContext, Handler
 from telegram.ext.jobqueue import Job
@@ -30,7 +30,7 @@ class TGBFPlugin:
         self._global_config = self._bot.config
 
         # Access to plugin config
-        self._config = self.get_config_manager()
+        self._config = self.get_cfg_manager()
 
         # All bot handlers for this plugin
         self._handlers: List[Handler] = list()
@@ -69,8 +69,8 @@ class TGBFPlugin:
          after the plugin configuration changed """
         pass
 
-    # TODO: Add callback function and per default use 'callback_cfg_change()'
-    def get_config_manager(self, plugin=None) -> ConfigManager:
+    # TODO: Describe arguments in docstring
+    def get_cfg_manager(self, plugin: str = None, on_change: Callable = None, pass_args=True) -> ConfigManager:
         """ Returns the plugin configuration. If the config
         file doesn't exist then it will be created """
 
@@ -80,6 +80,8 @@ class TGBFPlugin:
         else:
             cfg_file = f"{self.name}.json"
             cfg_fold = os.path.join(self.get_cfg_path())
+
+            on_change = on_change if on_change else self.callback_cfg_change
 
         cfg_path = os.path.join(cfg_fold, cfg_file)
 
@@ -93,7 +95,10 @@ class TGBFPlugin:
                 file.write("{}")
 
         # Return plugin config
-        return ConfigManager(cfg_path)
+        return ConfigManager(
+            cfg_path,
+            callback=on_change,
+            callback_pass_args=pass_args)
 
     @property
     def bot(self) -> TelegramBot:
