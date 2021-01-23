@@ -69,10 +69,17 @@ class TGBFPlugin:
          after the plugin configuration changed """
         pass
 
-    # TODO: Describe arguments in docstring
     def get_cfg_manager(self, plugin: str = None, on_change: Callable = None, pass_args=True) -> ConfigManager:
-        """ Returns the plugin configuration. If the config
-        file doesn't exist then it will be created """
+        """ Returns a plugin configuration. If the config file
+        doesn't exist then it will be created.
+
+        If you don't provide 'plugin' and 'on_change' then the
+        default callback_cfg_change() will be used as callback
+        method that will be triggered on changes in the file.
+
+        If 'pass_args' is True then the settings-change context
+        (what has changed, key and value) will be passed to the
+        callback method. If False then nothing will be passed. """
 
         if plugin:
             cfg_file = plugin.lower() + ".json"

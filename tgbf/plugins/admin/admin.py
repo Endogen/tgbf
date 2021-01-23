@@ -9,9 +9,7 @@ from tgbf.config import ConfigManager
 from tgbf.plugin import TGBFPlugin
 
 
-# TODO: Add possibility to list all plugins, not only command-based plugins and disable / remove them via button
-# TODO: Add possibility to reload config file of plugin
-# TODO: Error if only one argument provided
+# TODO: List all plugins, not only command-based plugins. Allow to disable / enable them via buttons
 class Admin(TGBFPlugin):
 
     def load(self):
@@ -24,7 +22,7 @@ class Admin(TGBFPlugin):
     @TGBFPlugin.private
     @TGBFPlugin.send_typing
     def admin_callback(self, update: Update, context: CallbackContext):
-        if not context.args:
+        if not len(context.args) >= 3:
             update.message.reply_text(
                 text=f"Usage:\n{self.get_usage()}",
                 parse_mode=ParseMode.MARKDOWN)
@@ -59,7 +57,6 @@ class Admin(TGBFPlugin):
             conf = context.args[0].lower()
             context.args.pop(0)
 
-            # FIXME: ERROR
             get_set = context.args[0].lower()
             context.args.pop(0)
 
@@ -100,7 +97,7 @@ class Admin(TGBFPlugin):
                     if plugin == "-":
                         value = self.global_config.get(*context.args)
                     else:
-                        cfg_file = f"{conf}.json"
+                        cfg_file = conf if conf.endswith("json") else f"{conf}.json"
                         plg_conf = self.get_cfg_path(plugin=plugin)
                         cfg_path = os.path.join(plg_conf, cfg_file)
                         value = ConfigManager(cfg_path).get(*context.args)
