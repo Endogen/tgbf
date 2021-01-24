@@ -3,6 +3,13 @@ General info about plugins and specific info about plugins that are included per
 
 Every plugin can add different handlers (from {PTB}[https://github.com/python-telegram-bot/python-telegram-bot]) and web endpoints ({Flask}[https://github.com/pallets/flask])
 
+## Plugin conventions
+Plugins will be automatically recognized and added on startup if:
+- Plugin has own folder in `tgbf/plugins`
+- Folder name == plugin name
+- Plugin folder needs to have a `<plugin name>.py` file (== plugin itself)
+- Plugin class name == plugin name (but first letter in uppercase)
+
 ## Plugin configuration
 A plugin configuration file can be empty or even not existing. If you provide a config, following keys are recognized automatically:
 
@@ -15,6 +22,12 @@ A plugin configuration file can be empty or even not existing. If you provide a 
 - `owner`: If you use the "owner" decorator in your plugin then you can disable it if you set `owner = false` in the config
 - `admins`: Needs to be a list. If you use the "owner" decorator in your plugin then you can add admins for this plugin by adding Telegram IDs as Integers to the list
 - `active`: If you set `active = false` then the plugin will not be loaded next time the bot (re-)starts
+
+## Implementation details
+- Plugin needs to inherit from class `TGBFPlugin`
+- Plugin needs to overwrite `load` method
+
+The `load` method usually adds bot handlers that allow interactions with commands etc.
 
 ## Default plugins
 This is a list of out-of-the-box available plugins for this bot
