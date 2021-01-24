@@ -6,17 +6,16 @@ The framework is build around the [python-telegram-bot](https://github.com/pytho
 
 ### General bot features
 * Every command is a plugin
-* Every plugin can be enabled / disabled without restarting the bot
-* Every plugin can be updated by drag & dropping the implementation into the bot chat
+* Plugins can be enabled / disabled without restarting the bot
+* Plugins can be updated by drag & dropping the Python file into the bot chat
 * Restart or shutdown the bot via command
-* Bot can be administered by more then one user
-* Bot can send current logfile over Telegram
+* Bot can be administered by different users
+* Bot can send current logfile over Telegram (download)
 * Admin can query data from the various databases directly over Telegram
-* Bot has a web-interface so that data can be accessed also over JSON
+* Bot has a web-interface and every plugin can have multiple web endpoints
 
 ## Configuration
-This part is only relevant if you want to host this bot yourself. If you just want to use the bot, [add the bot](https://t.me/t2x_robot) *@t2x_robot* to your Telegram contacts.
-
+This part is only relevant if you want to host this bot yourself.  
 Before starting up the bot you have to take care of some settings and add a Telegram API token. The configuration file, toke file and wallet file are located in the `config` folder.
 
 ### config.json
@@ -39,9 +38,6 @@ This file holds the Telegram bot token. You have to provide one and you will get
 If you don't want to provide the token in a file then you have two other options:
 - Provide it as a command line argument: `-tkn <your token>`
 - Provide it as an input on the command line (**MOST SECURE**): `-input-tkn`
-
-### wallet.json
-This file holds the private key of the TRX wallet that belongs to the bot and from which payouts will be send to users.
 
 ## Usage
 In order to run the bot you need to execute it with the Python interpreter. If you don't have any idea where to host the bot, take a look at [Where to host Telegram Bots](https://github.com/python-telegram-bot/python-telegram-bot/wiki/Where-to-host-Telegram-Bots). Services like [Heroku](https://www.heroku.com) (free) will work fine. You can also run the script locally on your own computer for testing purposes.
@@ -76,31 +72,20 @@ Then run it to get the bot up with
 The recommended way to stop the bot is by using the bot command `/shutdown` (only possible for admins). If you don't want or can't use the command, you can shut the bot down with:
 
 ```shell
-pkill python3.7
+./kill.sh
 ```
-
-which will kill __every__ Python 3.7 process that is currently running.
 
 ### Autocomplete for commands
 If you want to show a list of available commands as you type, open a chat with Telegram bot [@BotFather](https://t.me/BotFather) and execute the command `/setcommands`. Then choose the bot you want to activate the list for and after that send the list of commands with description. Something like this:
 
 ```
-balance - Show TRX and T2X balance
-deposit - Show wallet address and qr-code
-feedback - Send us your feedback
+about - Show info about bot and dev
+feedback - Send me your feedback
 help - Show all available commands
-rain - Let it rain T2X on users
-send_t2x - Send T2X from your wallet
-send_trx - Send TRX from your wallet
-tip_t2x - Tip another user with T2X
-tip_trx - Tip another user with TRX
-withdraw_t2x - Withdraw all T2X from your wallet
-withdraw_trx - Withdraw all TRX from your wallet
 ```
 
-
 ## Development
-The bot is under active development and not considered finished yet. If you want to help out you can report issues or create PRs.
+The bot is under active development. If you want to help out you can report issues or create PRs.
 
 ### Plugins
 If you decide to write your own plugin, check out the [Plugin Page](https://github.com/Endogen/T2X-Bot/tree/master/t2xbot/plugins) to read up on how to create a plugin and know about available plugins.
