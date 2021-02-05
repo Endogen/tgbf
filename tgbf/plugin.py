@@ -182,6 +182,7 @@ class TGBFPlugin:
 
         logging.info(f"Plugin '{self.name}': Endpoint '{name}' added")
 
+    # TODO: Remove
     def get_usage(self, replace: dict = None):
         """ Return how to use a command. Default resource '<plugin>.md'
          will be loaded from the resource folder and if you provide a
@@ -208,6 +209,7 @@ class TGBFPlugin:
         path = os.path.join(os.getcwd(), c.DIR_RES, filename)
         return self._get_resource_content(path)
 
+    # TODO: Combine with 'get_usage()' and default filename = name of the plugin
     def get_resource(self, filename, plugin=None):
         """ Return the content of the given file from
         the resource directory of the given plugin """
@@ -453,6 +455,10 @@ class TGBFPlugin:
             if plugin.name == plugin_name.lower():
                 return True
         return False
+
+    def is_private(self, message: Message):
+        """ Check if message was sent in a private chat or not """
+        return self.bot.updater.bot.get_chat(message.chat_id).type == Chat.PRIVATE
 
     def remove_msg(self, message: Message, after_secs, private=True, public=True):
         """ Remove a Telegram message after a given time """
