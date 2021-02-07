@@ -50,7 +50,7 @@ class Usage(TGBFPlugin):
             logging.error(f"{msg} - {update}")
             self.notify(msg)
 
-    def usage_web(self, password):
+    def usage_web(self):
         sql = self.get_resource("select_usage.sql")
         res = self.execute_sql(sql)
 
