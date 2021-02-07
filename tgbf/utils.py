@@ -16,16 +16,6 @@ def is_numeric(string):
     return False
 
 
-def esc_md(text):
-    import re
-
-    rep = {"_": "\\_", "*": "\\*", "[": "\\[", "`": "\\`"}
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile("|".join(rep.keys()))
-
-    return pattern.sub(lambda m: rep[re.escape(m.group(0))], text)
-
-
 def build_menu(buttons, n_cols=1, header_buttons=None, footer_buttons=None):
     """ Build button-menu for Telegram """
     menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
