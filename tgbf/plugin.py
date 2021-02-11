@@ -628,9 +628,9 @@ class TGBFPlugin:
 
     @classmethod
     def blacklist(cls, func):
-        """ Decorator to check whether a command can be executed in the given
-         chat or not. If the current chat ID is part of the 'blacklist' list
-         in the plugins config file then the command will not be executed. """
+        """ Decorator to check whether a command is allowed to be executed in the
+        given chat or not. If the current chat ID is part of the 'blacklist' list
+        in the plugins config file then the command will not be executed. """
 
         def _blacklist(self, update: Update, context: CallbackContext, **kwargs):
             blacklist_chats = self.config.get("blacklist")
@@ -646,9 +646,9 @@ class TGBFPlugin:
 
     @classmethod
     def whitelist(cls, func):
-        """ Decorator to check whether a command can be executed in the given
-         chat or not. If the current chat ID is part of the 'whitelist' list
-         in the plugins config file then the command will be executed. """
+        """ Decorator to check whether a command is allowed to be executed in the
+        given chat or not. If the current chat ID is part of the 'whitelist' list
+        in the plugins config file then the command will be executed. """
 
         def _whitelist(self, update: Update, context: CallbackContext, **kwargs):
             whitelist_chats = self.config.get("blacklist")
