@@ -3,10 +3,10 @@ import sqlite3
 import logging
 import inspect
 import threading
-
 import tgbf.constants as c
 import tgbf.emoji as emo
 
+from enum import Enum
 from pathlib import Path
 from typing import List, Dict, Tuple, Callable
 from telegram import ChatAction, Chat, Update, Message
@@ -16,6 +16,12 @@ from tgbf.config import ConfigManager
 from tgbf.tgbot import TelegramBot
 from datetime import datetime, timedelta
 from tgbf.web import EndpointAction
+
+
+class Notify(Enum):
+    INFO = 1
+    WARNING = 2
+    ERROR = 3
 
 
 class TGBFPlugin:
@@ -484,7 +490,7 @@ class TGBFPlugin:
         if (is_private and private) or (not is_private and public):
             remove()
 
-    def notify(self, some_input):
+    def notify(self, some_input, style: Notify = Notify.ERROR):
         """ All admins in global config will get a message with the given text.
          Primarily used for exceptions but can be used with other inputs too. """
 
@@ -493,8 +499,18 @@ class TGBFPlugin:
 
         if self.global_config.get("admin", "notify_on_error"):
             for admin in self.global_config.get("admin", "ids"):
+                if style == Notify.INFO:
+                    emoji = f"{emo.INFO}"
+                elif style == Notify.WARNING:
+                    emoji = f"{emo.WARNING}"
+                elif style == Notify.ERROR:
+                    emoji = f"{emo.ALERT}"
+                else:
+                    emoji = f"{emo.ALERT}"
+
+                msg = f"{emoji} {some_input}"
+
                 try:
-                    msg = f"{emo.ALERT} Admin Notification {emo.ALERT}\n{some_input}"
                     self.bot.updater.bot.send_message(admin, msg)
                 except Exception as e:
                     error = f"Not possible to notify admin id '{admin}'"
@@ -513,7 +529,7 @@ class TGBFPlugin:
             else:
                 try:
                     name = context.bot.username if context.bot.username else context.bot.name
-                    msg = f"{emo.INFO} Only allowed to execute in a private chat with @{name}"
+                    msg = f"Can only be used in a chat with @{name}"
                     update.message.reply_text(msg)
                 except:
                     pass
@@ -531,7 +547,7 @@ class TGBFPlugin:
                 return func(self, update, context, **kwargs)
             else:
                 try:
-                    msg = f"{emo.INFO} Only allowed to execute in a public chat"
+                    msg = f"Can only be used in a public chat"
                     update.message.reply_text(msg)
                 except:
                     pass
@@ -621,13 +637,8 @@ class TGBFPlugin:
             current_chat_id = update.effective_chat.id
 
             if blacklist_chats and current_chat_id in blacklist_chats:
-                name = context.bot.username if context.bot.username else context.bot.name
-                msg1 = f"Execute in chat with @{name} or in"
-                msg2 = "[Trading Group](https://t.me/Tradetau)"
-                update.message.reply_text(
-                    f"{esc_mk(msg1, version=2)} {msg2}",
-                    parse_mode=ParseMode.MARKDOWN_V2,
-                    disable_web_page_preview=True)
+                msg = f"Command is blacklisted in this chat"
+                update.message.reply_text(msg)
             else:
                 return func(self, update, context, **kwargs)
 
@@ -646,7 +657,7 @@ class TGBFPlugin:
             if whitelist_chats and current_chat_id in whitelist_chats:
                 return func(self, update, context, **kwargs)
             else:
-                msg = f"Group not whitelisted for this command"
+                msg = f"Chat not whitelisted for this command"
                 update.message.reply_text(msg)
 
         return _whitelist
