@@ -19,7 +19,6 @@ class Debug(TGBFPlugin):
             run_async=True))
 
     @TGBFPlugin.owner
-    @TGBFPlugin.private
     @TGBFPlugin.send_typing
     def debug_callback(self, update: Update, context: CallbackContext):
         open_files = psutil.Process().open_files()
@@ -31,5 +30,18 @@ class Debug(TGBFPlugin):
               f"{emo.INFO} Open files: {len(open_files)}\n" \
               f"{emo.INFO} Python: {v}\n" \
               f"{emo.INFO} IP: {utl.get_external_ip()}"
-        update.message.reply_text(msg)
-        logging.info(msg.replace("\n", " - "))
+
+        chat_info = update.effective_chat
+
+        if self.is_private(update.message):
+            update.message.reply_text(msg)
+        else:
+            try:
+                self.bot.updater.bot.send_message(
+                    update.effective_user.id,
+                    f"{msg}\n\n{chat_info}")
+            except Exception as e:
+                logging.error(f"Could not send debug info: {e}")
+
+        msg = msg.replace("\n", " - ")
+        logging.info(f"DEBUG: {msg} - {chat_info}")
