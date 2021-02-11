@@ -610,6 +610,47 @@ class TGBFPlugin:
             return func(self, update, context, **kwargs)
         return _send_typing
 
+    @classmethod
+    def blacklist(cls, func):
+        """ Decorator to check whether a command can be executed in the given
+         chat or not. If the current chat ID is part of the 'blacklist' list
+         in the plugins config file then the command will not be executed. """
+
+        def _blacklist(self, update: Update, context: CallbackContext, **kwargs):
+            blacklist_chats = self.config.get("blacklist")
+            current_chat_id = update.effective_chat.id
+
+            if blacklist_chats and current_chat_id in blacklist_chats:
+                name = context.bot.username if context.bot.username else context.bot.name
+                msg1 = f"Execute in chat with @{name} or in"
+                msg2 = "[Trading Group](https://t.me/Tradetau)"
+                update.message.reply_text(
+                    f"{esc_mk(msg1, version=2)} {msg2}",
+                    parse_mode=ParseMode.MARKDOWN_V2,
+                    disable_web_page_preview=True)
+            else:
+                return func(self, update, context, **kwargs)
+
+        return _blacklist
+
+    @classmethod
+    def whitelist(cls, func):
+        """ Decorator to check whether a command can be executed in the given
+         chat or not. If the current chat ID is part of the 'whitelist' list
+         in the plugins config file then the command will be executed. """
+
+        def _whitelist(self, update: Update, context: CallbackContext, **kwargs):
+            whitelist_chats = self.config.get("blacklist")
+            current_chat_id = update.effective_chat.id
+
+            if whitelist_chats and current_chat_id in whitelist_chats:
+                return func(self, update, context, **kwargs)
+            else:
+                msg = f"Group not whitelisted for this command"
+                update.message.reply_text(msg)
+
+        return _whitelist
+
     @staticmethod
     def threaded(fn):
         """ Decorator for methods that have to run in their own thread """
